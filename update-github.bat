@@ -27,7 +27,7 @@ cd /d "%~dp0"
 if not exist .git (
     echo [初始化] 正在创建Git仓库...
     %GIT% init
-    %GIT% remote add origin https://github.com/YFFKJB/accounting-system.git
+    %GIT% remote add origin https://github.com/YFFKJB/accounting-system-new.git
 )
 
 :: 确保在main分支上
