@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作室记账系统 - 注册</title>
+    <style>
+        /* 使用与登录页面相同的样式 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .register-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>注册账号</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <button type="submit">注册</button>
+            <p style="text-align: center; margin-top: 1rem;">
+                <a href="index.html">返回登录</a>
+            </p>
+        </form>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+
+            try {
+                console.log('发送注册请求...');
+                console.log('用户名:', username);
+                
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username.trim(),
+                        password: password.trim()
+                    })
+                });
+
+                console.log('收到响应:', response.status);
+                const data = await response.text();
+                console.log('响应内容:', data);
+
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(data);
+                } catch (e) {
+                    throw new Error('服务器返回了无效的JSON数据: ' + data);
+                }
+
+                if (!response.ok) {
+                    throw new Error(jsonData.message || '注册失败');
+                }
+
+                alert(jsonData.message || '注册成功！');
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('注册错误:', error);
+                alert(error.message || '注册失败，请重试');
+            }
+        });
+    </script>
+</body>
+</html> 
