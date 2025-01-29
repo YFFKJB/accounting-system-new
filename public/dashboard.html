@@ -259,13 +259,14 @@
             e.preventDefault();
             
             const record = {
-                type: document.getElementById('type').value,
+                type: document.querySelector('input[name="type"]:checked').value,
                 amount: parseFloat(document.getElementById('amount').value),
                 category: document.getElementById('category').value,
                 description: document.getElementById('description').value || '无描述'
             };
 
             try {
+                console.log('发送记录:', record);
                 const response = await fetch('/api/records', {
                     method: 'POST',
                     headers: {
@@ -275,16 +276,29 @@
                     body: JSON.stringify(record)
                 });
 
+                const data = await response.json();
+                console.log('服务器响应:', data);
+                
                 if (!response.ok) {
-                    throw new Error('添加记录失败');
+                    throw new Error(data.error || '添加记录失败');
+                }
+
+                // 更新统计数据
+                if (data.summary) {
+                    updateSummary(data.summary);
                 }
 
                 // 重新加载记录
                 loadRecords();
+                
+                // 重置表单
                 e.target.reset();
+                
+                // 显示成功提示
+                alert('记录添加成功！');
             } catch (error) {
                 console.error('添加记录失败:', error);
-                alert('添加记录失败，请重试');
+                alert(error.message || '添加记录失败，请重试');
             }
         });
 

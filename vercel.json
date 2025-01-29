@@ -16,6 +16,11 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
+      "src": "/api/records",
+      "dest": "/api/records.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

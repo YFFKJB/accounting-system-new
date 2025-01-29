@@ -10,7 +10,10 @@ const COLLECTION_NAME = 'records';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // 创建 MongoDB 客户端
-const client = new MongoClient(MONGODB_URI);
+const client = new MongoClient(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
 // 验证 JWT token
 function verifyToken(token) {
@@ -22,31 +25,32 @@ function verifyToken(token) {
 }
 
 module.exports = async (req, res) => {
-    // 设置响应头
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    // 处理 OPTIONS 请求
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    // 验证 token
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: '未授权访问' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return res.status(401).json({ error: '无效的token' });
-    }
-
     try {
+        // 设置响应头
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        // 处理 OPTIONS 请求
+        if (req.method === 'OPTIONS') {
+            res.status(200).end();
+            return;
+        }
+
+        // 验证 token
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: '未授权访问' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.status(401).json({ error: '无效的token' });
+        }
+
+        // 连接数据库
         await client.connect();
         const db = client.db(DB_NAME);
         const records = db.collection(COLLECTION_NAME);
@@ -79,7 +83,7 @@ module.exports = async (req, res) => {
             // 重新计算统计数据
             const summary = await calculateSummary(records, decoded.userId);
             
-            res.status(200).json({ message: '添加成功', record, summary });
+            return res.status(200).json({ message: '添加成功', record, summary });
 
         } else if (req.method === 'GET') {
             // 获取记录列表和统计数据
@@ -91,20 +95,24 @@ module.exports = async (req, res) => {
 
             const summary = await calculateSummary(records, decoded.userId);
 
-            res.status(200).json({
+            return res.status(200).json({
                 records: recordsList,
                 summary
             });
 
         } else {
-            res.status(405).json({ error: '不支持的请求方法' });
+            return res.status(405).json({ error: '不支持的请求方法' });
         }
 
     } catch (error) {
         console.error('记录操作错误:', error);
-        res.status(500).json({ error: '服务器错误' });
+        return res.status(500).json({ error: '服务器错误' });
     } finally {
-        await client.close();
+        try {
+            await client.close();
+        } catch (error) {
+            console.error('关闭数据库连接失败:', error);
+        }
     }
 };
 
