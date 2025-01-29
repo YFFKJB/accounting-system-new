@@ -6,13 +6,21 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "src": "/api/register",
+      "dest": "/api/register.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/login",
+      "dest": "/api/login.js",
+      "methods": ["POST", "OPTIONS"]
     },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "mongodb+srv://1261546255:2EIDqdkjvGH3EN6d@cluster0.7k654.mongodb.net/accounting?retryWrites=true&w=majority&appName=Cluster0"
+  }
 } 
