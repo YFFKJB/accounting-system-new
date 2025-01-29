@@ -4,180 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工作室记账系统 - 仪表盘</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .header {
-            background-color: #007bff;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        .welcome {
-            margin-bottom: 2rem;
-        }
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-        .logout-btn {
-            background: none;
-            border: 1px solid white;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background: #218838;
-        }
-        .records-list {
-            margin-top: 1rem;
-        }
-        .record-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-        .income {
-            color: #28a745;
-        }
-        .expense {
-            color: #dc3545;
-        }
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .summary-card {
-            text-align: center;
-            padding: 1rem;
-        }
-        .summary-card h4 {
-            margin: 0;
-            color: #666;
-        }
-        .summary-card .amount {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 0.5rem 0;
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
     </style>
 </head>
-<body>
-    <div class="header">
-        <h1>工作室记账系统</h1>
-        <button class="logout-btn" onclick="logout()">退出登录</button>
-    </div>
-
-    <div class="container">
-        <div class="welcome">
-            <h2>欢迎回来，<span id="username"></span></h2>
-        </div>
-
-        <div class="summary">
-            <div class="card summary-card">
-                <h4>总收入</h4>
-                <div class="amount income" id="totalIncome">¥0.00</div>
-            </div>
-            <div class="card summary-card">
-                <h4>总支出</h4>
-                <div class="amount expense" id="totalExpense">¥0.00</div>
-            </div>
-            <div class="card summary-card">
-                <h4>结余</h4>
-                <div class="amount" id="balance">¥0.00</div>
-            </div>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <h3>添加记录</h3>
-                <form id="recordForm">
-                    <div class="form-group">
-                        <label for="type">类型</label>
-                        <select id="type" required>
-                            <option value="income">收入</option>
-                            <option value="expense">支出</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="amount">金额</label>
-                        <input type="number" id="amount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="category">分类</label>
-                        <select id="category" required>
-                            <option value="salary">工资</option>
-                            <option value="bonus">奖金</option>
-                            <option value="rent">房租</option>
-                            <option value="utilities">水电费</option>
-                            <option value="other">其他</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">描述</label>
-                        <input type="text" id="description" required>
-                    </div>
-                    <button type="submit" class="btn">添加记录</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3>最近记录</h3>
-                <div id="recordsList" class="records-list">
-                    <!-- 记录将通过 JavaScript 动态添加 -->
+<body class="bg-gray-50">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">工作室记账系统</h1>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-4">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
+                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        退出登录
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <dt class="text-sm font-medium text-gray-500 truncate">总收入</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-green-600" id="totalIncome">¥0.00</dd>
+                </div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <dt class="text-sm font-medium text-gray-500 truncate">总支出</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-red-600" id="totalExpense">¥0.00</dd>
+                </div>
+            </div>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <dt class="text-sm font-medium text-gray-500 truncate">结余</dt>
+                    <dd class="mt-1 text-3xl font-semibold text-blue-600" id="balance">¥0.00</dd>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- 添加记录表单 -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">添加记录</h3>
+                    <form id="recordForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">类型</label>
+                            <select id="type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="income">收入</option>
+                                <option value="expense">支出</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">金额</label>
+                            <input type="number" id="amount" step="0.01" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">分类</label>
+                            <select id="category" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
+                                <option value="salary">工资</option>
+                                <option value="bonus">奖金</option>
+                                <option value="rent">房租</option>
+                                <option value="utilities">水电费</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">描述</label>
+                            <input type="text" id="description" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            添加记录
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 记录列表 -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">最近记录</h3>
+                    <div id="recordsList" class="space-y-3">
+                        <!-- 记录将通过 JavaScript 动态添加 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
         // 检查登录状态
@@ -220,12 +147,12 @@
         function updateRecordsList(records) {
             const list = document.getElementById('recordsList');
             list.innerHTML = records.map(record => `
-                <div class="record-item">
+                <div class="fade-in bg-gray-50 px-4 py-3 rounded-md flex justify-between items-center">
                     <div>
-                        <strong>${record.description}</strong>
-                        <div>${record.category} - ${new Date(record.createdAt).toLocaleDateString()}</div>
+                        <div class="font-medium text-gray-900">${record.description}</div>
+                        <div class="text-sm text-gray-500">${record.category} - ${new Date(record.createdAt).toLocaleDateString()}</div>
                     </div>
-                    <div class="${record.type}">
+                    <div class="text-lg font-semibold ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
                         ${record.type === 'income' ? '+' : '-'}¥${record.amount.toFixed(2)}
                     </div>
                 </div>
