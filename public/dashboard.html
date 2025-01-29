@@ -234,8 +234,9 @@
         // 更新记录列表
         function updateRecordsList(records) {
             const list = document.getElementById('recordsList');
-            list.innerHTML = records.map(record => `
-                <div class="animate-slide-in bg-gray-50 px-4 py-4 rounded-lg flex justify-between items-center hover-scale">
+            list.innerHTML = records.map((record, index) => `
+                <div class="animate-slide-in bg-gray-50 px-4 py-4 rounded-lg flex justify-between items-center hover-scale"
+                     style="animation-delay: ${index * 50}ms">
                     <div>
                         <div class="font-medium text-gray-900 text-xl">${record.description || '无描述'}</div>
                         <div class="text-base text-gray-500">${record.category} - ${new Date(record.createdAt).toLocaleDateString()}</div>
@@ -258,15 +259,21 @@
         document.getElementById('recordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const record = {
-                type: document.querySelector('input[name="type"]:checked').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value || '无描述'
-            };
-
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
             try {
-                console.log('发送记录:', record);
+                // 禁用提交按钮并显示加载状态
+                submitButton.disabled = true;
+                submitButton.textContent = '添加中...';
+                
+                const record = {
+                    type: document.querySelector('input[name="type"]:checked').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    category: document.getElementById('category').value,
+                    description: document.getElementById('description').value || '无描述'
+                };
+
                 const response = await fetch('/api/records', {
                     method: 'POST',
                     headers: {
@@ -277,7 +284,6 @@
                 });
 
                 const data = await response.json();
-                console.log('服务器响应:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.error || '添加记录失败');
@@ -294,11 +300,27 @@
                 // 重置表单
                 e.target.reset();
                 
-                // 显示成功提示
-                alert('记录添加成功！');
+                // 重置分类选择
+                document.querySelector('input[name="type"]:checked').dispatchEvent(new Event('change'));
+                
+                // 添加成功动画效果
+                document.getElementById('amount').classList.add('animate-pulse');
+                setTimeout(() => {
+                    document.getElementById('amount').classList.remove('animate-pulse');
+                }, 500);
+
             } catch (error) {
                 console.error('添加记录失败:', error);
-                alert(error.message || '添加记录失败，请重试');
+                // 在表单下方显示错误信息
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-red-500 text-sm mt-2 animate-slide-in';
+                errorDiv.textContent = error.message || '添加记录失败，请重试';
+                submitButton.parentNode.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 3000); // 3秒后自动移除错误提示
+            } finally {
+                // 恢复提交按钮状态
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
             }
         });
 
