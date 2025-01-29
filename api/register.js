@@ -2,31 +2,20 @@ const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
 // MongoDB 连接配置
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://trinityliang9:<db_password>@cluster0.gqkcn.mongodb.net/accounting';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://1261546255:2EIDqdkjvGH3EN6d@cluster0.7k654.mongodb.net/accounting?retryWrites=true&w=majority&appName=Cluster0';
 const DB_NAME = 'accounting';
 const COLLECTION_NAME = 'users';
 
 // 创建一个新的 MongoClient 实例
 const client = new MongoClient(MONGODB_URI);
 
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log('Connected to MongoDB');
-        return client.db(DB_NAME);
-    } catch (error) {
-        console.error('MongoDB connection error:', error);
-        throw error;
-    }
-}
-
 // API 处理函数
-async function handler(req, res) {
+module.exports = async (req, res) => {
     // 设置 CORS 和响应头
+    res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
 
     // 处理 OPTIONS 请求
     if (req.method === 'OPTIONS') {
@@ -47,7 +36,8 @@ async function handler(req, res) {
         }
 
         // 连接数据库
-        const db = await connectDB();
+        await client.connect();
+        const db = client.db(DB_NAME);
         const users = db.collection(COLLECTION_NAME);
 
         // 检查用户名是否已存在
@@ -70,7 +60,7 @@ async function handler(req, res) {
     } catch (error) {
         console.error('Registration error:', error);
         res.status(500).json({ error: '服务器错误' });
+    } finally {
+        await client.close();
     }
-}
-
-module.exports = handler; 
+}; 
