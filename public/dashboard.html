@@ -268,11 +268,12 @@
 
         function updateRecordsList(records) {
             const list = document.getElementById('recordsList');
-            const currentUsername = localStorage.getItem('username'); // 获取当前用户名
+            const currentUsername = localStorage.getItem('username');
             
             list.innerHTML = records.map((record, index) => `
                 <div class="animate-slide-in bg-gray-50 px-4 py-4 rounded-lg flex items-center hover-scale group"
-                     style="animation-delay: ${index * 50}ms">
+                     style="animation-delay: ${index * 50}ms"
+                     id="record-${record._id}">
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-1">
                             <div class="text-sm text-gray-500">${formatDateTime(record.createdAt)}</div>
@@ -398,7 +399,7 @@
             }, 500);
         });
 
-        // 添加删除记录功能
+        // 优化删除记录功能
         async function deleteRecord(recordId) {
             if (!confirm('确定要删除这条记录吗？')) return;
 
@@ -416,13 +417,21 @@
                     throw new Error(data.error || '删除记录失败');
                 }
 
-                // 更新统计数据和记录列表
-                updateSummary(data.summary);
-                loadRecords();
+                // 直接从本地缓存中移除记录
+                STATE.records = STATE.records.filter(record => record._id !== recordId);
+                
+                // 更新统计数据
+                if (data.summary) {
+                    STATE.summary = data.summary;
+                }
+                
+                // 直接更新界面，不重新请求
+                updateRecordsList(STATE.records);
+                updateSummary(STATE.summary);
 
             } catch (error) {
                 console.error('删除记录失败:', error);
-                alert(error.message || '删除记录失败，请重试');
+                showError(error.message || '删除记录失败，请重试');
             }
         }
     </script>
