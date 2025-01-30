@@ -71,6 +71,7 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: decoded.userId,
+                username: decoded.username,
                 type,
                 amount: parseFloat(amount),
                 category,

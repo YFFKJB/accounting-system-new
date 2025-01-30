@@ -56,11 +56,12 @@ module.exports = async (req, res) => {
         }
 
         // 生成 JWT token
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        const token = jwt.sign({
+            userId: user._id,
+            username: user.username
+        }, JWT_SECRET, {
+            expiresIn: '7d'
+        });
 
         // 返回成功响应
         res.status(200).json({
