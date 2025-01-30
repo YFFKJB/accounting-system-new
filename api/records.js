@@ -5,15 +5,41 @@ const jwt = require('jsonwebtoken');
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'accounting';
 const COLLECTION_NAME = 'records';
-
-// JWT 密钥
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// 创建 MongoDB 客户端
-const client = new MongoClient(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+// 创建全局数据库连接
+let cachedDb = null;
+let cachedClient = null;
+
+async function connectToDatabase() {
+    if (cachedDb) {
+        return { db: cachedDb, client: cachedClient };
+    }
+
+    const client = new MongoClient(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        // 优化连接池配置
+        maxPoolSize: 1,  // 减少连接数
+        minPoolSize: 1,  // 保持最小连接
+        maxIdleTimeMS: 120000,  // 增加空闲时间
+        connectTimeoutMS: 5000,  // 连接超时时间
+        socketTimeoutMS: 5000    // 操作超时时间
+    });
+
+    await client.connect();
+    const db = client.db(DB_NAME);
+    
+    // 创建索引
+    const records = db.collection(COLLECTION_NAME);
+    await records.createIndex({ userId: 1, createdAt: -1 });
+    await records.createIndex({ userId: 1, type: 1 });
+    
+    cachedDb = db;
+    cachedClient = client;
+    
+    return { db, client };
+}
 
 // 验证 JWT token
 function verifyToken(token) {
@@ -25,7 +51,13 @@ function verifyToken(token) {
 }
 
 module.exports = async (req, res) => {
+    let client;
     try {
+        // 获取数据库连接
+        const { db, client: dbClient } = await connectToDatabase();
+        client = dbClient;
+        const records = db.collection(COLLECTION_NAME);
+
         // 设置响应头
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,11 +81,6 @@ module.exports = async (req, res) => {
         if (!decoded) {
             return res.status(401).json({ error: '无效的token' });
         }
-
-        // 连接数据库
-        await client.connect();
-        const db = client.db(DB_NAME);
-        const records = db.collection(COLLECTION_NAME);
 
         if (req.method === 'POST') {
             // 添加记录
@@ -89,7 +116,19 @@ module.exports = async (req, res) => {
         } else if (req.method === 'GET') {
             // 获取记录列表和统计数据
             const recordsList = await records
-                .find({ userId: decoded.userId })
+                .find(
+                    { userId: decoded.userId },
+                    { 
+                        projection: {
+                            type: 1,
+                            amount: 1,
+                            description: 1,
+                            category: 1,
+                            createdAt: 1,
+                            username: 1
+                        }
+                    }
+                )
                 .sort({ createdAt: -1 })
                 .limit(10)
                 .toArray();
@@ -138,12 +177,6 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error('记录操作错误:', error);
         return res.status(500).json({ error: '服务器错误' });
-    } finally {
-        try {
-            await client.close();
-        } catch (error) {
-            console.error('关闭数据库连接失败:', error);
-        }
     }
 };
 
