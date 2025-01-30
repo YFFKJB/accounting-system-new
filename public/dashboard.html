@@ -196,19 +196,67 @@
             window.location.href = '/index.html';
         }
 
-        // 加载记录
-        async function loadRecords() {
+        // 添加缓存和状态管理
+        const STATE = {
+            records: [],
+            summary: null,
+            loading: false,
+            lastUpdate: 0
+        };
+
+        // 优化加载记录函数
+        async function loadRecords(forceUpdate = false) {
+            // 如果数据已经加载且未超过30秒，直接使用缓存
+            const now = Date.now();
+            if (!forceUpdate && STATE.lastUpdate && (now - STATE.lastUpdate < 30000)) {
+                updateRecordsList(STATE.records);
+                updateSummary(STATE.summary);
+                return;
+            }
+
             try {
+                // 显示加载状态
+                STATE.loading = true;
+                updateLoadingState();
+
                 const response = await fetch('/api/records', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 const data = await response.json();
+                
+                // 更新缓存
+                STATE.records = data.records;
+                STATE.summary = data.summary;
+                STATE.lastUpdate = now;
+
                 updateRecordsList(data.records);
                 updateSummary(data.summary);
             } catch (error) {
                 console.error('加载记录失败:', error);
+                showError('加载记录失败，请刷新页面重试');
+            } finally {
+                STATE.loading = false;
+                updateLoadingState();
+            }
+        }
+
+        // 添加加载状态显示
+        function updateLoadingState() {
+            const recordsList = document.getElementById('recordsList');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            if (STATE.loading) {
+                if (!loadingIndicator) {
+                    recordsList.innerHTML = `
+                        <div id="loadingIndicator" class="flex items-center justify-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        </div>
+                    `;
+                }
+            } else {
+                updateRecordsList(STATE.records);
             }
         }
 
@@ -254,7 +302,7 @@
             document.getElementById('balance').textContent = `¥${(summary.totalIncome - summary.totalExpense).toFixed(2)}`;
         }
 
-        // 添加记录
+        // 优化记录添加
         document.getElementById('recordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -262,7 +310,6 @@
             const originalText = submitButton.textContent;
             
             try {
-                // 禁用提交按钮并显示加载状态
                 submitButton.disabled = true;
                 submitButton.textContent = '添加中...';
                 
@@ -270,7 +317,7 @@
                     type: document.querySelector('input[name="type"]:checked').value,
                     amount: parseFloat(document.getElementById('amount').value),
                     description: document.getElementById('description').value || '无描述',
-                    category: document.getElementById('description').value // 使用描述作为分类
+                    category: document.getElementById('description').value
                 };
 
                 const response = await fetch('/api/records', {
@@ -288,21 +335,24 @@
                     throw new Error(data.error || '添加记录失败');
                 }
 
-                // 更新统计数据
-                if (data.summary) {
-                    updateSummary(data.summary);
+                // 直接更新本地缓存
+                if (data.record) {
+                    STATE.records.unshift(data.record);
+                    STATE.records = STATE.records.slice(0, 10);
                 }
+                if (data.summary) {
+                    STATE.summary = data.summary;
+                }
+                STATE.lastUpdate = Date.now();
 
-                // 重新加载记录
-                loadRecords();
+                // 更新界面
+                updateRecordsList(STATE.records);
+                updateSummary(STATE.summary);
                 
                 // 重置表单
                 e.target.reset();
                 
-                // 重置分类选择
-                document.querySelector('input[name="type"]:checked').dispatchEvent(new Event('change'));
-                
-                // 添加成功动画效果
+                // 添加成功动画
                 document.getElementById('amount').classList.add('animate-pulse');
                 setTimeout(() => {
                     document.getElementById('amount').classList.remove('animate-pulse');
@@ -310,18 +360,21 @@
 
             } catch (error) {
                 console.error('添加记录失败:', error);
-                // 在表单下方显示错误信息
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'text-red-500 text-sm mt-2 animate-slide-in';
-                errorDiv.textContent = error.message || '添加记录失败，请重试';
-                submitButton.parentNode.appendChild(errorDiv);
-                setTimeout(() => errorDiv.remove(), 3000); // 3秒后自动移除错误提示
+                showError(error.message || '添加记录失败，请重试');
             } finally {
-                // 恢复提交按钮状态
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
             }
         });
+
+        // 添加错误提示函数
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
+            errorDiv.innerHTML = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
 
         // 根据类型切换显示相应的分类
         document.querySelectorAll('input[name="type"]').forEach(radio => {
