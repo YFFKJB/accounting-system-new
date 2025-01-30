@@ -1,72 +1,47 @@
 # 工作室记账系统
 
-一个简单高效的工作室财务管理系统，帮助工作室更好地管理收支记录。
+一个简单的工作室记账系统，支持多用户管理、收支记录和数据统计。
 
 ## 功能特点
 
-- 👥 用户管理
-  - 账号注册
-  - 安全登录
-  - JWT 身份验证
-
-- 💰 收支管理
-  - 收入记录
-  - 支出记录
-  - 分类管理
-  - 实时统计
-
-- 📊 数据统计
-  - 总收入统计
-  - 总支出统计
-  - 结余计算
-  - 记录历史
+- 用户管理
+  - 用户注册/登录
+  - 管理员权限控制
+  - 用户删除功能
+- 记账功能
+  - 收入/支出记录
+  - 金额统计
+  - 实时更新
+- 数据管理
+  - 记录删除
+  - 数据统计
+  - 历史记录查看
 
 ## 技术栈
 
-- 前端
-  - HTML5
-  - TailwindCSS
-  - 原生 JavaScript
-  - Fetch API
+- 前端：HTML + TailwindCSS + JavaScript
+- 后端：Node.js + MongoDB + JWT
+- 部署：Vercel Serverless + MongoDB Atlas
 
-- 后端
-  - Node.js
-  - MongoDB
-  - JWT 认证
-  - Vercel Serverless
+## 目录结构
 
-## 快速开始
-
-1. 克隆项目
-```bash
-git clone https://github.com/YFFKJB/accounting-system-new.git
-cd accounting-system-new
 ```
-
-2. 安装依赖
-```bash
-npm install
+├── api/                # API 接口
+│   ├── admin/         # 管理员接口
+│   │   ├── check.js   # 权限检查
+│   │   └── users.js   # 用户管理
+│   ├── login.js       # 登录接口
+│   └── records.js     # 记录管理
+├── public/            # 静态文件
+│   ├── index.html     # 登录页面
+│   └── dashboard.html # 主面板
+├── scripts/           # 管理脚本
+│   ├── check-admin.js      # 检查管理员状态
+│   └── set-admin-local.js  # 设置管理员权限
+├── .env              # 环境变量
+├── vercel.json       # Vercel 配置
+└── README.md         # 项目说明
 ```
-
-3. 配置环境变量
-```env
-MONGODB_URI=你的MongoDB连接字符串
-JWT_SECRET=你的JWT密钥
-```
-
-4. 本地运行
-```bash
-vercel dev
-```
-
-## 部署
-
-本项目使用 Vercel 部署，自动集成了 CI/CD 流程：
-
-1. Fork 本仓库
-2. 在 Vercel 中导入项目
-3. 配置环境变量
-4. 自动部署完成
 
 ## API 文档
 
@@ -105,7 +80,6 @@ vercel dev
   {
     "type": "income|expense",
     "amount": 100.00,
-    "category": "分类",
     "description": "描述"
   }
   ```
@@ -121,8 +95,7 @@ vercel dev
       {
         "type": "income",
         "amount": 100.00,
-        "category": "工资",
-        "description": "1月工资",
+        "description": "工资",
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
@@ -133,54 +106,44 @@ vercel dev
   }
   ```
 
-## 开发计划
+## 开发说明
 
-- [x] 基础用户系统
-- [x] 记账功能
-- [ ] 数据导出
-- [ ] 图表统计
-- [ ] 多人协作
-- [ ] 预算管理
+1. 安装依赖
+```bash
+npm install mongodb bcryptjs jsonwebtoken
+```
 
-## 贡献指南
+2. 设置环境变量
+```bash
+# .env
+MONGODB_URI=你的MongoDB连接地址
+JWT_SECRET=你的JWT密钥
+```
+
+3. 设置管理员
+```bash
+node scripts/set-admin-local.js
+```
+
+4. 检查管理员状态
+```bash
+node scripts/check-admin.js
+```
+
+## 部署说明
 
 1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交改动 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
+2. 在 Vercel 中导入项目
+3. 设置环境变量
+4. 部署完成
 
-## 许可证
+## 注意事项
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+- 首次使用需要设置管理员权限
+- 管理员可以管理所有用户
+- 普通用户只能管理自己的记录
 
 ## 联系方式
 
 - 项目负责人：[YFFKJB]
-- 邮箱：[your-email@example.com]
 - 项目地址：[https://github.com/YFFKJB/accounting-system-new]
-
-## 项目简介
-这是一个简单易用的在线记账系统，支持多用户管理各自的收支记录。系统采用Web方式实现，使用Vercel Serverless部署。
-
-## 技术架构
-- 前端：HTML + CSS + JavaScript
-- 后端：Vercel Serverless Functions
-- 数据库：MongoDB Atlas
-- 部署：Vercel
-
-## 主要功能
-1. 用户管理
-   - 用户注册和登录
-   - 密码加密存储
-   - JWT token认证
-
-2. 记账功能
-   - 添加收入/支出记录
-   - 记录包含：日期、类型、金额、分类、备注
-   - 查看历史记录
-   - 按月份统计收支情况
-
-## 在线访问
-- 项目地址：[待部署后添加]
-- 测试账号：[待添加123] 

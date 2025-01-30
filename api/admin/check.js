@@ -6,6 +6,8 @@ const DB_NAME = 'accounting';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 module.exports = async (req, res) => {
+    console.log('开始验证管理员权限');
+    
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -24,6 +26,8 @@ module.exports = async (req, res) => {
     let client;
     try {
         const token = authHeader.split(' ')[1];
+        console.log('收到的token:', token);
+        
         const decoded = jwt.verify(token, JWT_SECRET);
         console.log('解析的token:', decoded);
 
@@ -32,11 +36,17 @@ module.exports = async (req, res) => {
         console.log('数据库连接成功');
         
         const db = client.db(DB_NAME);
-        const user = await db.collection('users').findOne({
+        const users = db.collection('users');
+
+        // 先打印所有用户信息（调试用）
+        const allUsers = await users.find({}).toArray();
+        console.log('所有用户:', allUsers);
+
+        const user = await users.findOne({
             _id: new ObjectId(decoded.userId)
         });
 
-        console.log('查找到的用户:', user);
+        console.log('当前用户:', user);
 
         if (!user) {
             console.log('未找到用户');
@@ -44,15 +54,25 @@ module.exports = async (req, res) => {
         }
 
         if (!user.isAdmin) {
-            console.log('用户不是管理员');
+            console.log('用户不是管理员，isAdmin:', user.isAdmin);
             return res.status(403).json({ error: '需要管理员权限' });
         }
 
         console.log('验证管理员成功');
-        return res.status(200).json({ message: '验证成功' });
+        return res.status(200).json({ 
+            message: '验证成功',
+            user: {
+                username: user.username,
+                isAdmin: user.isAdmin
+            }
+        });
     } catch (error) {
         console.error('验证管理员权限失败:', error);
-        return res.status(500).json({ error: '服务器错误', details: error.message });
+        return res.status(500).json({ 
+            error: '服务器错误', 
+            details: error.message,
+            stack: error.stack
+        });
     } finally {
         if (client) {
             await client.close();
