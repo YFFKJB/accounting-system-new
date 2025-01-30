@@ -47,7 +47,7 @@ set /p choice=请输入数字(1-7):
 
 if "%choice%"=="1" (
     %GIT% add .
-    %GIT% commit -m "更新所有文件"
+    %GIT% commit -m "Update files"
 ) else if "%choice%"=="2" (
     %GIT% add vercel.json
     %GIT% commit -m "移除敏感信息"
