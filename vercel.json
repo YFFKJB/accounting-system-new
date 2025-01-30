@@ -21,6 +21,11 @@
       "methods": ["GET", "POST", "OPTIONS"]
     },
     {
+      "src": "/api/records/(?<id>[^/]+)",
+      "dest": "/api/records.js",
+      "methods": ["DELETE"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

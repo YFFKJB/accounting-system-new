@@ -137,6 +137,13 @@
                         </div>
 
                         <div class="space-y-2">
+                            <label class="block form-label font-medium text-gray-700">类目</label>
+                            <input type="text" id="description" 
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg py-3" 
+                                placeholder="请输入类目..." required>
+                        </div>
+
+                        <div class="space-y-2">
                             <label class="block form-label font-medium text-gray-700">金额</label>
                             <div class="relative rounded-md shadow-sm">
                                 <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
@@ -146,32 +153,6 @@
                                     class="amount-input pl-14 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                     placeholder="0.00" required>
                             </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block form-label font-medium text-gray-700">分类</label>
-                            <select id="category" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xl py-3">
-                                <optgroup label="收入类别" id="incomeCategories">
-                                    <option value="salary">工资收入</option>
-                                    <option value="bonus">奖金收入</option>
-                                    <option value="investment">投资收入</option>
-                                    <option value="other_income">其他收入</option>
-                                </optgroup>
-                                <optgroup label="支出类别" id="expenseCategories">
-                                    <option value="rent">房租物业</option>
-                                    <option value="utilities">水电费用</option>
-                                    <option value="office">办公用品</option>
-                                    <option value="salary_expense">人员工资</option>
-                                    <option value="other_expense">其他支出</option>
-                                </optgroup>
-                            </select>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block form-label font-medium text-gray-700">描述（选填）</label>
-                            <textarea id="description" rows="3"
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg" 
-                                placeholder="添加具体描述..."></textarea>
                         </div>
 
                         <button type="submit" 
@@ -232,18 +213,34 @@
         }
 
         // 更新记录列表
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
         function updateRecordsList(records) {
             const list = document.getElementById('recordsList');
             list.innerHTML = records.map((record, index) => `
-                <div class="animate-slide-in bg-gray-50 px-4 py-4 rounded-lg flex justify-between items-center hover-scale"
+                <div class="animate-slide-in bg-gray-50 px-4 py-4 rounded-lg flex items-center hover-scale group"
                      style="animation-delay: ${index * 50}ms">
-                    <div>
-                        <div class="font-medium text-gray-900 text-xl">${record.description || '无描述'}</div>
-                        <div class="text-base text-gray-500">${record.category} - ${new Date(record.createdAt).toLocaleDateString()}</div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="text-sm text-gray-500">${formatDateTime(record.createdAt)}</div>
+                            <div class="text-sm text-gray-500">记录人：${record.username || '未知'}</div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="font-medium text-gray-900 text-xl">${record.description}</div>
+                            <div class="text-2xl font-semibold ${record.type === 'income' ? 'text-emerald-600' : 'text-red-600'}">
+                                ${record.type === 'income' ? '+' : '-'}¥${record.amount.toFixed(2)}
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-2xl font-semibold ${record.type === 'income' ? 'text-emerald-600' : 'text-red-600'}">
-                        ${record.type === 'income' ? '+' : '-'}¥${record.amount.toFixed(2)}
-                    </div>
+                    <button onclick="deleteRecord('${record._id}')" 
+                        class="ml-4 p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
             `).join('');
         }
@@ -347,6 +344,34 @@
                 document.getElementById('amount').classList.remove('animate-pulse');
             }, 500);
         });
+
+        // 添加删除记录功能
+        async function deleteRecord(recordId) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+
+            try {
+                const response = await fetch(`/api/records/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || '删除记录失败');
+                }
+
+                // 更新统计数据和记录列表
+                updateSummary(data.summary);
+                loadRecords();
+
+            } catch (error) {
+                console.error('删除记录失败:', error);
+                alert(error.message || '删除记录失败，请重试');
+            }
+        }
     </script>
 </body>
 </html> 

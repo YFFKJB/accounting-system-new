@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
         // 设置响应头
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
         // 处理 OPTIONS 请求
@@ -99,6 +99,36 @@ module.exports = async (req, res) => {
                 records: recordsList,
                 summary
             });
+
+        } else if (req.method === 'DELETE') {
+            const recordId = req.url.split('/').pop();
+            if (!recordId) {
+                return res.status(400).json({ error: '缺少记录ID' });
+            }
+
+            try {
+                const record = await records.findOne({
+                    _id: new ObjectId(recordId),
+                    userId: decoded.userId
+                });
+
+                if (!record) {
+                    return res.status(404).json({ error: '记录不存在' });
+                }
+
+                await records.deleteOne({ _id: new ObjectId(recordId) });
+                
+                // 重新计算统计数据
+                const summary = await calculateSummary(records, decoded.userId);
+                
+                return res.status(200).json({ 
+                    message: '删除成功',
+                    summary 
+                });
+            } catch (error) {
+                console.error('删除记录失败:', error);
+                return res.status(500).json({ error: '删除记录失败' });
+            }
 
         } else {
             return res.status(405).json({ error: '不支持的请求方法' });
