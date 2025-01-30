@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "工作室记账系统",
   "main": "index.js",
-  "scripts": {
-    "start": "vercel dev"
-  },
   "dependencies": {
-    "mongodb": "^6.3.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy"
+  },
+  "author": "YFFKJB",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
   }
 } 

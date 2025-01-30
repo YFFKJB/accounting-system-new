@@ -31,13 +31,13 @@
 │   │   ├── check.js   # 权限检查
 │   │   └── users.js   # 用户管理
 │   ├── login.js       # 登录接口
-│   └── records.js     # 记录管理
+│   ├── records.js     # 记录管理
+│   └── register.js    # 注册接口
 ├── public/            # 静态文件
+│   ├── admin.html     # 管理员页面
+│   ├── dashboard.html # 主面板
 │   ├── index.html     # 登录页面
-│   └── dashboard.html # 主面板
-├── scripts/           # 管理脚本
-│   ├── check-admin.js      # 检查管理员状态
-│   └── set-admin-local.js  # 设置管理员权限
+│   └── register.html  # 注册页面
 ├── .env              # 环境变量
 ├── vercel.json       # Vercel 配置
 └── README.md         # 项目说明
@@ -106,42 +106,34 @@
   }
   ```
 
-## 开发说明
+### 管理员相关
 
-1. 安装依赖
-```bash
-npm install mongodb bcryptjs jsonwebtoken
-```
+#### 获取用户列表
+- 路径: `/api/admin/users`
+- 方法: `GET`
+- 需要认证: 是（管理员）
 
-2. 设置环境变量
-```bash
-# .env
-MONGODB_URI=你的MongoDB连接地址
-JWT_SECRET=你的JWT密钥
-```
-
-3. 设置管理员
-```bash
-node scripts/set-admin-local.js
-```
-
-4. 检查管理员状态
-```bash
-node scripts/check-admin.js
-```
+#### 删除用户
+- 路径: `/api/admin/users/:userId`
+- 方法: `DELETE`
+- 需要认证: 是（管理员）
 
 ## 部署说明
 
 1. Fork 本仓库
 2. 在 Vercel 中导入项目
-3. 设置环境变量
+3. 设置环境变量：
+   ```
+   MONGODB_URI=你的MongoDB连接地址
+   JWT_SECRET=你的JWT密钥
+   ```
 4. 部署完成
 
 ## 注意事项
 
-- 首次使用需要设置管理员权限
 - 管理员可以管理所有用户
 - 普通用户只能管理自己的记录
+- 删除用户会同时删除该用户的所有记录
 
 ## 联系方式
 
