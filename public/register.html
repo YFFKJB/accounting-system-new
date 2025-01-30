@@ -4,118 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工作室记账系统 - 注册</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 使用与登录页面相同的样式 */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
         .register-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 300px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            min-height: 100vh;
         }
-        .form-group {
-            margin-bottom: 1rem;
+
+        .register-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-        input {
-            width: 100%;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        .input-field {
+            transition: all 0.3s ease;
         }
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+
+        .input-field:focus {
+            transform: translateY(-2px);
         }
-        button:hover {
-            background-color: #218838;
+
+        .register-button {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.3s ease;
+        }
+
+        .register-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
     </style>
 </head>
 <body>
-    <div class="register-container">
-        <h2>注册账号</h2>
-        <form id="registerForm">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" id="username" required>
+    <div class="register-container flex items-center justify-center p-4">
+        <div class="register-card w-full max-w-md p-8 rounded-2xl animate-fade-in">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">创建新账号</h1>
+                <p class="text-gray-600">加入工作室记账系统</p>
             </div>
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" id="password" required>
-            </div>
-            <div class="form-group">
-                <label for="confirmPassword">确认密码</label>
-                <input type="password" id="confirmPassword" required>
-            </div>
-            <button type="submit">注册</button>
-            <p style="text-align: center; margin-top: 1rem;">
-                <a href="index.html">返回登录</a>
-            </p>
-        </form>
+
+            <form id="registerForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="username">
+                        用户名
+                    </label>
+                    <input type="text" id="username" name="username" required
+                        class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-lg"
+                        placeholder="请设置用户名">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="password">
+                        密码
+                    </label>
+                    <input type="password" id="password" name="password" required
+                        class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-lg"
+                        placeholder="请设置密码">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="confirmPassword">
+                        确认密码
+                    </label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-lg"
+                        placeholder="请再次输入密码">
+                </div>
+
+                <div id="errorMessage" class="text-red-500 text-sm text-center hidden"></div>
+
+                <button type="submit"
+                    class="register-button w-full py-3 px-4 text-white text-lg font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    注册
+                </button>
+
+                <div class="text-center">
+                    <a href="/index.html" class="text-indigo-600 hover:text-indigo-500 text-sm">
+                        已有账号？返回登录
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
+
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password !== confirmPassword) {
-                alert('两次输入的密码不一致');
-                return;
-            }
-
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const errorMessage = document.getElementById('errorMessage');
+            const originalText = submitButton.textContent;
+            
             try {
-                console.log('发送注册请求...');
-                console.log('用户名:', username);
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    throw new Error('两次输入的密码不一致');
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = '注册中...';
+                errorMessage.classList.add('hidden');
                 
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        username: username.trim(),
-                        password: password.trim()
-                    })
+                    body: JSON.stringify({ username, password })
                 });
 
-                console.log('收到响应:', response.status);
-                const data = await response.text();
-                console.log('响应内容:', data);
-
-                let jsonData;
-                try {
-                    jsonData = JSON.parse(data);
-                } catch (e) {
-                    throw new Error('服务器返回了无效的JSON数据: ' + data);
-                }
+                const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(jsonData.message || '注册失败');
+                    throw new Error(data.error || '注册失败');
                 }
 
-                alert(jsonData.message || '注册成功！');
-                window.location.href = '/index.html';
+                // 注册成功后自动登录
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.user.username);
+                
+                // 显示成功消息并跳转
+                alert('注册成功！');
+                window.location.href = '/dashboard.html';
+
             } catch (error) {
-                console.error('注册错误:', error);
-                alert(error.message || '注册失败，请重试');
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+                
+                submitButton.classList.add('animate-shake');
+                setTimeout(() => {
+                    submitButton.classList.remove('animate-shake');
+                }, 500);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
             }
         });
     </script>
