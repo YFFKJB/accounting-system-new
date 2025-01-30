@@ -17,12 +17,14 @@ module.exports = async (req, res) => {
 
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('未提供token');
         return res.status(401).json({ error: '未授权访问' });
     }
 
     try {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('解析的token:', decoded);
 
         const client = new MongoClient(MONGODB_URI);
         await client.connect();
@@ -33,12 +35,16 @@ module.exports = async (req, res) => {
             isAdmin: true
         });
 
+        console.log('查找到的用户:', user);
+
         await client.close();
 
         if (!user) {
+            console.log('用户不是管理员');
             return res.status(403).json({ error: '需要管理员权限' });
         }
 
+        console.log('验证管理员成功');
         return res.status(200).json({ message: '验证成功' });
     } catch (error) {
         console.error('验证管理员权限失败:', error);

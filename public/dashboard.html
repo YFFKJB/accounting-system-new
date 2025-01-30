@@ -92,8 +92,10 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-gray-600">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
-                    <a href="/admin.html" id="adminLink" class="hidden text-indigo-600 hover:text-indigo-700">用户管理</a>
-                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200">
+                    <a href="/admin.html" id="adminLink" class="hidden inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                        用户管理
+                    </a>
+                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600">
                         退出登录
                     </button>
                 </div>
@@ -199,7 +201,11 @@
 
                 if (response.ok) {
                     // 如果是管理员，显示管理入口
-                    document.getElementById('adminLink').classList.remove('hidden');
+                    const adminLink = document.getElementById('adminLink');
+                    adminLink.classList.remove('hidden');
+                    console.log('管理员权限验证成功');
+                } else {
+                    console.log('不是管理员用户');
                 }
             } catch (error) {
                 console.error('检查管理员权限失败:', error);

@@ -8,8 +8,14 @@ async function setAdmin() {
     
     try {
         await client.connect();
+        console.log('数据库连接成功');
+        
         const db = client.db(DB_NAME);
         const users = db.collection('users');
+
+        // 先查找用户
+        const user = await users.findOne({ username: 'LYP' });
+        console.log('找到用户:', user);
 
         const result = await users.updateOne(
             { username: 'LYP' },
@@ -23,6 +29,11 @@ async function setAdmin() {
         } else {
             console.log('成功设置管理员权限');
         }
+
+        // 验证更新
+        const updatedUser = await users.findOne({ username: 'LYP' });
+        console.log('更新后的用户信息:', updatedUser);
+
     } catch (error) {
         console.error('设置管理员失败:', error);
     } finally {
