@@ -267,8 +267,8 @@
                 const record = {
                     type: document.querySelector('input[name="type"]:checked').value,
                     amount: parseFloat(document.getElementById('amount').value),
-                    category: document.getElementById('category').value,
-                    description: document.getElementById('description').value || '无描述'
+                    description: document.getElementById('description').value || '无描述',
+                    category: document.getElementById('description').value // 使用描述作为分类
                 };
 
                 const response = await fetch('/api/records', {
@@ -324,9 +324,7 @@
         // 根据类型切换显示相应的分类
         document.querySelectorAll('input[name="type"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
-                const type = e.target.value;
-                document.getElementById('incomeCategories').style.display = type === 'income' ? '' : 'none';
-                document.getElementById('expenseCategories').style.display = type === 'expense' ? '' : 'none';
+                // 不再需要切换分类显示
             });
         });
 
