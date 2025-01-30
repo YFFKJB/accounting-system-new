@@ -38,15 +38,16 @@ module.exports = async (req, res) => {
         const db = client.db(DB_NAME);
         const users = db.collection('users');
 
-        // 先打印所有用户信息（调试用）
+        // 先列出所有用户
         const allUsers = await users.find({}).toArray();
-        console.log('所有用户:', allUsers);
+        console.log('数据库中的所有用户:', allUsers);
 
+        // 查找当前用户
         const user = await users.findOne({
             _id: new ObjectId(decoded.userId)
         });
 
-        console.log('当前用户:', user);
+        console.log('当前用户信息:', user);
 
         if (!user) {
             console.log('未找到用户');
