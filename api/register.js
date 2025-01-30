@@ -55,15 +55,15 @@ module.exports = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // 创建新用户
-        const newUser = {
-            username,
+        const user = {
+            username: username,
             password: hashedPassword,
             createdAt: new Date(),
             isAdmin: false
         };
 
         // 保存到数据库
-        const result = await users.insertOne(newUser);
+        const result = await users.insertOne(user);
 
         // 生成 JWT token
         const token = jwt.sign({

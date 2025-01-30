@@ -97,12 +97,10 @@ module.exports = async (req, res) => {
             }
 
             const record = {
-                userId: decoded.userId,
-                username: decoded.username,
-                type,
-                amount: parseFloat(amount),
-                category,
-                description: description || '无描述',
+                userId: new ObjectId(decoded.userId),
+                type: req.body.type,
+                amount: parseFloat(req.body.amount),
+                description: req.body.description,
                 createdAt: new Date()
             };
 

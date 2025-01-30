@@ -48,6 +48,10 @@ module.exports = async (req, res) => {
         const users = db.collection('users');
         const records = db.collection('records');
 
+        // 只在必要字段上建立索引
+        await users.createIndex({ username: 1 }, { unique: true });
+        await records.createIndex({ userId: 1 });
+
         if (req.method === 'GET') {
             // 获取用户列表
             const usersList = await users.find({ _id: { $ne: new ObjectId(admin.userId) } }).toArray();
