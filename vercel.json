@@ -38,6 +38,11 @@
       "src": "/api/admin/users/(?<id>[^/]+)",
       "dest": "/api/admin/users.js",
       "methods": ["DELETE"]
+    },
+    {
+      "src": "/api/admin/check",
+      "dest": "/api/admin/check.js",
+      "methods": ["GET", "OPTIONS"]
     }
   ]
 } 
