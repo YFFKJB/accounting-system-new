@@ -28,6 +28,16 @@
     {
       "src": "/(.*)",
       "dest": "/public/$1"
+    },
+    {
+      "src": "/api/admin/users",
+      "dest": "/api/admin/users.js",
+      "methods": ["GET"]
+    },
+    {
+      "src": "/api/admin/users/(?<id>[^/]+)",
+      "dest": "/api/admin/users.js",
+      "methods": ["DELETE"]
     }
   ]
 } 
