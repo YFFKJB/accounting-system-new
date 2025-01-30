@@ -17,21 +17,29 @@ async function setAdmin() {
         const user = await users.findOne({ username: 'LYP' });
         console.log('找到用户:', user);
 
+        if (!user) {
+            console.error('未找到用户: LYP');
+            return;
+        }
+
         const result = await users.updateOne(
-            { username: 'LYP' },
-            { $set: { isAdmin: true } }
+            { _id: user._id },  // 使用 _id 更准确
+            { 
+                $set: { 
+                    isAdmin: true,
+                    updatedAt: new Date()
+                } 
+            }
         );
 
-        if (result.matchedCount === 0) {
-            console.error('未找到用户: LYP');
-        } else if (result.modifiedCount === 0) {
+        if (result.modifiedCount === 0) {
             console.log('用户已经是管理员');
         } else {
             console.log('成功设置管理员权限');
         }
 
         // 验证更新
-        const updatedUser = await users.findOne({ username: 'LYP' });
+        const updatedUser = await users.findOne({ _id: user._id });
         console.log('更新后的用户信息:', updatedUser);
 
     } catch (error) {

@@ -26,8 +26,9 @@
       "methods": ["DELETE"]
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "src": "/api/admin/check",
+      "dest": "/api/admin/check.js",
+      "methods": ["GET", "OPTIONS"]
     },
     {
       "src": "/api/admin/users",
@@ -40,9 +41,8 @@
       "methods": ["DELETE"]
     },
     {
-      "src": "/api/admin/check",
-      "dest": "/api/admin/check.js",
-      "methods": ["GET", "OPTIONS"]
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 } 
