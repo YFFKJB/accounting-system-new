@@ -17,23 +17,21 @@ async function connectToDatabase() {
     }
 
     const client = new MongoClient(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        maxPoolSize: 1,
-        minPoolSize: 1,
-        maxIdleTimeMS: 120000,
-        connectTimeoutMS: 5000,
-        socketTimeoutMS: 5000
+        compressors: ['zlib'],
+        zlibCompressionLevel: 9
     });
-
     await client.connect();
     const db = client.db(DB_NAME);
     
-    // 创建索引
+    // 优化索引策略
     const records = db.collection(COLLECTION_NAME);
-    await records.createIndex({ userId: 1, createdAt: -1 });
-    await records.createIndex({ userId: 1, type: 1 });
-    
+    // 创建复合索引，减少索引数量
+    await records.createIndex({ 
+        userId: 1, 
+        createdAt: -1,
+        type: 1 
+    });
+
     cachedDb = db;
     cachedClient = client;
     
@@ -91,10 +89,10 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: new ObjectId(decoded.userId),
-                type: type,
-                amount: parseFloat(amount),
-                description: description || '',
-                createdAt: new Date()
+                t: type.charAt(0),  // 使用 'i' 代替 'income', 'e' 代替 'expense'
+                a: parseFloat(amount),  // 简化字段名
+                d: description || '',
+                c: new Date()
             };
 
             await records.insertOne(record);
@@ -105,7 +103,13 @@ module.exports = async (req, res) => {
             // 获取最新的记录列表
             const recordsList = await records
                 .find({ userId: new ObjectId(decoded.userId) })
-                .sort({ createdAt: -1 })
+                .project({
+                    type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
+                    amount: "$a",
+                    description: "$d",
+                    createdAt: "$c"
+                })
+                .sort({ c: -1 })
                 .limit(10)
                 .toArray();
 
@@ -119,19 +123,14 @@ module.exports = async (req, res) => {
         } else if (req.method === 'GET') {
             // 获取记录列表和统计数据
             const recordsList = await records
-                .find(
-                    { userId: new ObjectId(decoded.userId) },
-                    { 
-                        projection: {
-                            type: 1,
-                            amount: 1,
-                            description: 1,
-                            createdAt: 1,
-                            username: 1
-                        }
-                    }
-                )
-                .sort({ createdAt: -1 })
+                .find({ userId: new ObjectId(decoded.userId) })
+                .project({
+                    type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
+                    amount: "$a",
+                    description: "$d",
+                    createdAt: "$c"
+                })
+                .sort({ c: -1 })
                 .limit(10)
                 .toArray();
 
@@ -166,7 +165,13 @@ module.exports = async (req, res) => {
                 // 获取最新的记录列表
                 const recordsList = await records
                     .find({ userId: new ObjectId(decoded.userId) })
-                    .sort({ createdAt: -1 })
+                    .project({
+                        type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
+                        amount: "$a",
+                        description: "$d",
+                        createdAt: "$c"
+                    })
+                    .sort({ c: -1 })
                     .limit(10)
                     .toArray();
 
