@@ -79,15 +79,12 @@ module.exports = async (req, res) => {
         }
 
         if (req.method === 'POST') {
-            // 添加记录
             const { type, amount, description } = req.body;
             
-            // 验证必填字段
             if (!type || !amount) {
                 return res.status(400).json({ error: '缺少必要字段' });
             }
 
-            // 验证金额
             if (isNaN(amount) || amount <= 0) {
                 return res.status(400).json({ error: '无效的金额' });
             }
@@ -102,10 +99,22 @@ module.exports = async (req, res) => {
 
             await records.insertOne(record);
             
-            // 重新计算统计数据
+            // 获取最新的统计数据
             const summary = await calculateSummary(records, decoded.userId);
             
-            return res.status(200).json({ message: '添加成功', record, summary });
+            // 获取最新的记录列表
+            const recordsList = await records
+                .find({ userId: new ObjectId(decoded.userId) })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .toArray();
+
+            return res.status(200).json({ 
+                message: '添加成功', 
+                record,
+                summary,
+                records: recordsList
+            });
 
         } else if (req.method === 'GET') {
             // 获取记录列表和统计数据
@@ -177,7 +186,11 @@ module.exports = async (req, res) => {
 // 计算统计数据
 async function calculateSummary(records, userId) {
     const pipeline = [
-        { $match: { userId: userId } },
+        { 
+            $match: { 
+                userId: new ObjectId(userId) 
+            } 
+        },
         {
             $group: {
                 _id: '$type',
