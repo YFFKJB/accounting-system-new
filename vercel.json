@@ -33,7 +33,7 @@
     {
       "src": "/api/admin/users",
       "dest": "/api/admin/users.js",
-      "methods": ["GET"]
+      "methods": ["GET", "OPTIONS"]
     },
     {
       "src": "/api/admin/users/(?<id>[^/]+)",

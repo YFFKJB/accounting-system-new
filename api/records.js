@@ -12,33 +12,33 @@ let cachedDb = null;
 let cachedClient = null;
 
 async function connectToDatabase() {
-    if (cachedDb) {
-        return { db: cachedDb, client: cachedClient };
+    try {
+        if (cachedDb) {
+            console.log('使用缓存的数据库连接');
+            return { db: cachedDb, client: cachedClient };
+        }
+
+        console.log('创建新的数据库连接');
+        console.log('MONGODB_URI:', MONGODB_URI);
+        
+        const client = new MongoClient(MONGODB_URI);
+        await client.connect();
+        
+        const db = client.db(DB_NAME);
+        const records = db.collection(COLLECTION_NAME);
+        
+        // 测试连接
+        const stats = await records.stats();
+        console.log('集合统计:', stats);
+        
+        cachedDb = db;
+        cachedClient = client;
+        
+        return { db, client };
+    } catch (error) {
+        console.error('数据库连接错误:', error);
+        throw error;
     }
-
-    const client = new MongoClient(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        // 优化连接池配置
-        maxPoolSize: 1,  // 减少连接数
-        minPoolSize: 1,  // 保持最小连接
-        maxIdleTimeMS: 120000,  // 增加空闲时间
-        connectTimeoutMS: 5000,  // 连接超时时间
-        socketTimeoutMS: 5000    // 操作超时时间
-    });
-
-    await client.connect();
-    const db = client.db(DB_NAME);
-    
-    // 创建索引
-    const records = db.collection(COLLECTION_NAME);
-    await records.createIndex({ userId: 1, createdAt: -1 });
-    await records.createIndex({ userId: 1, type: 1 });
-    
-    cachedDb = db;
-    cachedClient = client;
-    
-    return { db, client };
 }
 
 // 验证 JWT token
@@ -106,32 +106,37 @@ module.exports = async (req, res) => {
 
             await records.insertOne(record);
             
-            // 重新计算统计数据
-            const summary = await calculateSummary(records, decoded.userId);
+            // 获取更新后的统计数据
+            const summary = await updateSummary(decoded.userId);
             
-            return res.status(200).json({ message: '添加成功', record, summary });
+            // 添加记录时的日志
+            console.log('添加记录:', record);
+            console.log('更新后的统计:', summary);
+
+            // 数据库操作的日志
+            console.log('MongoDB 连接状态:', db.serverConfig.isConnected());
+            
+            return res.status(200).json({ 
+                message: '记录添加成功',
+                record,
+                summary
+            });
 
         } else if (req.method === 'GET') {
+            console.log('处理 GET 请求');
+            console.log('用户ID:', decoded.userId);
+            
             // 获取记录列表和统计数据
             const recordsList = await records
-                .find(
-                    { userId: decoded.userId },
-                    { 
-                        projection: {
-                            type: 1,
-                            amount: 1,
-                            description: 1,
-                            category: 1,
-                            createdAt: 1,
-                            username: 1
-                        }
-                    }
-                )
+                .find({ userId: new ObjectId(decoded.userId) })
                 .sort({ createdAt: -1 })
                 .limit(10)
                 .toArray();
-
+            
+            console.log('查询到的记录:', recordsList);
+            
             const summary = await calculateSummary(records, decoded.userId);
+            console.log('统计结果:', summary);
 
             return res.status(200).json({
                 records: recordsList,
@@ -180,8 +185,49 @@ module.exports = async (req, res) => {
 
 // 计算统计数据
 async function calculateSummary(records, userId) {
+    console.log('计算统计, userId:', userId);
+    
     const pipeline = [
-        { $match: { userId: userId } },
+        { 
+            $match: { 
+                userId: new ObjectId(userId) 
+            } 
+        },
+        {
+            $group: {
+                _id: '$type',
+                total: { $sum: '$amount' }
+            }
+        }
+    ];
+
+    console.log('聚合管道:', JSON.stringify(pipeline));
+    const results = await records.aggregate(pipeline).toArray();
+    console.log('聚合结果:', results);
+    
+    const summary = {
+        totalIncome: 0,
+        totalExpense: 0
+    };
+
+    results.forEach(result => {
+        if (result._id === 'income') {
+            summary.totalIncome = result.total;
+        } else if (result._id === 'expense') {
+            summary.totalExpense = result.total;
+        }
+    });
+
+    console.log('计算后的统计:', summary);
+    return summary;
+}
+
+// 添加记录时更新统计数据
+async function updateSummary(userId) {
+    const pipeline = [
+        {
+            $match: { userId: new ObjectId(userId) }
+        },
         {
             $group: {
                 _id: '$type',
