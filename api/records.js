@@ -89,8 +89,8 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: new ObjectId(decoded.userId),
-                t: type.charAt(0),  // 使用 'i' 代替 'income', 'e' 代替 'expense'
-                a: parseFloat(amount),  // 简化字段名
+                t: type.charAt(0),  // 'i' 或 'e'
+                a: parseFloat(amount),
                 d: description || '',
                 c: new Date()
             };
@@ -100,44 +100,48 @@ module.exports = async (req, res) => {
             // 获取最新的统计数据
             const summary = await calculateSummary(records, decoded.userId);
             
-            // 获取最新的记录列表
+            // 获取最新的记录列表，并转换为前端需要的格式
             const recordsList = await records
                 .find({ userId: new ObjectId(decoded.userId) })
-                .project({
-                    type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
-                    amount: "$a",
-                    description: "$d",
-                    createdAt: "$c"
-                })
                 .sort({ c: -1 })
                 .limit(10)
                 .toArray();
+
+            // 转换数据格式
+            const formattedRecords = recordsList.map(r => ({
+                _id: r._id,
+                type: r.t === 'i' ? 'income' : 'expense',
+                amount: r.a,
+                description: r.d,
+                createdAt: r.c
+            }));
 
             return res.status(200).json({ 
                 message: '添加成功', 
-                record,
-                summary,
-                records: recordsList
+                records: formattedRecords,
+                summary
             });
 
         } else if (req.method === 'GET') {
-            // 获取记录列表和统计数据
             const recordsList = await records
                 .find({ userId: new ObjectId(decoded.userId) })
-                .project({
-                    type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
-                    amount: "$a",
-                    description: "$d",
-                    createdAt: "$c"
-                })
                 .sort({ c: -1 })
                 .limit(10)
                 .toArray();
+
+            // 转换数据格式
+            const formattedRecords = recordsList.map(r => ({
+                _id: r._id,
+                type: r.t === 'i' ? 'income' : 'expense',
+                amount: r.a,
+                description: r.d,
+                createdAt: r.c
+            }));
 
             const summary = await calculateSummary(records, decoded.userId);
 
             return res.status(200).json({
-                records: recordsList,
+                records: formattedRecords,
                 summary
             });
 
