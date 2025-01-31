@@ -106,26 +106,33 @@ module.exports = async (req, res) => {
 
             await records.insertOne(record);
             
-            // 获取最新数据
-            const recordsList = await records
+            // 获取最近6条记录用于显示
+            const recentRecords = await records
                 .find({})
                 .sort({ c: -1 })
-                .limit(6)  // 限制返回6条记录
+                .limit(6)
                 .toArray();
 
-            const totalIncome = recordsList
+            // 获取所有记录用于统计
+            const allRecords = await records
+                .find({})
+                .toArray();
+
+            // 使用所有记录计算用户统计
+            const userStats = await calculateUserStats(allRecords);
+
+            // 使用所有记录计算总收支
+            const totalIncome = allRecords
                 .filter(r => r.t === 'i')
                 .reduce((sum, r) => sum + r.a, 0);
             
-            const totalExpense = recordsList
+            const totalExpense = allRecords
                 .filter(r => r.t === 'e')
                 .reduce((sum, r) => sum + r.a, 0);
 
-            const userStats = await calculateUserStats(recordsList);
-
             return res.status(200).json({
                 message: '添加成功',
-                records: recordsList.map(r => ({
+                records: recentRecords.map(r => ({
                     _id: r._id,
                     username: r.username || '未知用户',
                     type: r.t === 'i' ? 'income' : 'expense',
@@ -138,24 +145,32 @@ module.exports = async (req, res) => {
             });
 
         } else if (req.method === 'GET') {
-            const recordsList = await records
+            // 获取最近6条记录用于显示
+            const recentRecords = await records
                 .find({})
                 .sort({ c: -1 })
-                .limit(6)  // 限制返回6条记录
+                .limit(6)
                 .toArray();
 
-            const totalIncome = recordsList
+            // 获取所有记录用于统计
+            const allRecords = await records
+                .find({})
+                .toArray();
+
+            // 使用所有记录计算用户统计
+            const userStats = await calculateUserStats(allRecords);
+
+            // 使用所有记录计算总收支
+            const totalIncome = allRecords
                 .filter(r => r.t === 'i')
                 .reduce((sum, r) => sum + r.a, 0);
             
-            const totalExpense = recordsList
+            const totalExpense = allRecords
                 .filter(r => r.t === 'e')
                 .reduce((sum, r) => sum + r.a, 0);
 
-            const userStats = await calculateUserStats(recordsList);
-
             return res.status(200).json({
-                records: recordsList.map(r => ({
+                records: recentRecords.map(r => ({
                     _id: r._id,
                     username: r.username || '未知用户',
                     type: r.t === 'i' ? 'income' : 'expense',
