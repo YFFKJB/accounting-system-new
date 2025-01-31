@@ -6,6 +6,7 @@
     <title>工作室记账系统 - 仪表盘</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@heroicons/react@2.0.18/outline/dist/index.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         @keyframes slideIn {
             from { transform: translateY(-10px); opacity: 0; }
@@ -87,6 +88,23 @@
         }
         .animate-success {
             animation: success-pulse 0.5s ease-out;
+        }
+        .table-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;  /* 可以根据需要调整 */
+        }
+        
+        .delete-icon {
+            color: #dc2626;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .delete-icon:hover {
+            color: #991b1b;
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -357,7 +375,7 @@
                 ? records 
                 : records.filter(record => record.username === selectedUser);
             
-            // 只显示前6条记录
+            // 获取最新的6条记录
             const limitedRecords = filteredRecords.slice(0, 6);
             const currentUsername = localStorage.getItem('username');
             const isAdmin = document.getElementById('adminLink').style.display !== 'none';
@@ -365,33 +383,32 @@
             const recordsList = document.getElementById('recordsList');
             recordsList.innerHTML = limitedRecords.map(record => `
                 <tr>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="text-sm font-medium text-gray-900">${record.username}</span>
+                    <td class="px-6 py-4 border-b border-gray-500">
+                        <span class="table-cell text-sm font-medium text-gray-900">${record.username}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    <td class="px-6 py-4 border-b border-gray-500">
+                        <span class="table-cell px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             record.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }">
                             ${record.type === 'income' ? '收入' : '支出'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                    <td class="px-6 py-4 border-b border-gray-500">
+                        <span class="table-cell text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
                             ${record.type === 'income' ? '+' : '-'}${record.amount}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
-                        ${record.description}
+                    <td class="px-6 py-4 border-b border-gray-500">
+                        <span class="table-cell text-sm text-gray-900">${record.description}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
-                        ${new Date(record.createdAt).toLocaleString()}
+                    <td class="px-6 py-4 border-b border-gray-500">
+                        <span class="table-cell text-sm text-gray-900">${new Date(record.createdAt).toLocaleString()}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-right">
+                    <td class="px-6 py-4 border-b border-gray-500 text-right">
                         ${(isAdmin || record.username === currentUsername) ? `
-                            <button onclick="deleteRecord('${record._id}')" 
-                                class="text-red-600 hover:text-red-900 text-sm font-medium hover:underline focus:outline-none">
-                                删除
-                            </button>
+                            <i class="ri-delete-bin-5-line delete-icon text-lg" 
+                               onclick="deleteRecord('${record._id}')" 
+                               title="删除记录"></i>
                         ` : ''}
                     </td>
                 </tr>
@@ -569,9 +586,10 @@
             `).join('');
         }
 
-        // 添加筛选器变化监听
+        // 修改用户筛选器变化监听
         document.getElementById('userFilter').addEventListener('change', () => {
-            updateRecordsList(STATE.records);
+            // 重新加载记录以获取所选用户的最新6条记录
+            loadRecords();
         });
     </script>
 </body>

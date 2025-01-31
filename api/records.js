@@ -133,9 +133,16 @@ module.exports = async (req, res) => {
             });
 
         } else if (req.method === 'GET') {
-            // 获取最近6条记录用于显示
+            const userFilter = req.query.user;  // 获取用户筛选参数
+            
+            // 构建查询条件
+            const query = userFilter && userFilter !== 'all' 
+                ? { username: userFilter }
+                : {};
+
+            // 获取记录
             const recentRecords = await records
-                .find({})
+                .find(query)
                 .sort({ c: -1 })
                 .limit(6)
                 .toArray();
