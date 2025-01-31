@@ -12,33 +12,32 @@ let cachedDb = null;
 let cachedClient = null;
 
 async function connectToDatabase() {
-    try {
-        if (cachedDb) {
-            console.log('使用缓存的数据库连接');
-            return { db: cachedDb, client: cachedClient };
-        }
-
-        console.log('创建新的数据库连接');
-        console.log('MONGODB_URI:', MONGODB_URI);
-        
-        const client = new MongoClient(MONGODB_URI);
-        await client.connect();
-        
-        const db = client.db(DB_NAME);
-        const records = db.collection(COLLECTION_NAME);
-        
-        // 测试连接
-        const stats = await records.stats();
-        console.log('集合统计:', stats);
-        
-        cachedDb = db;
-        cachedClient = client;
-        
-        return { db, client };
-    } catch (error) {
-        console.error('数据库连接错误:', error);
-        throw error;
+    if (cachedDb) {
+        return { db: cachedDb, client: cachedClient };
     }
+
+    const client = new MongoClient(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        maxPoolSize: 1,
+        minPoolSize: 1,
+        maxIdleTimeMS: 120000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 5000
+    });
+
+    await client.connect();
+    const db = client.db(DB_NAME);
+    
+    // 创建索引
+    const records = db.collection(COLLECTION_NAME);
+    await records.createIndex({ userId: 1, createdAt: -1 });
+    await records.createIndex({ userId: 1, type: 1 });
+    
+    cachedDb = db;
+    cachedClient = client;
+    
+    return { db, client };
 }
 
 // 验证 JWT token
@@ -51,11 +50,8 @@ function verifyToken(token) {
 }
 
 module.exports = async (req, res) => {
-    let client;
     try {
-        // 获取数据库连接
-        const { db, client: dbClient } = await connectToDatabase();
-        client = dbClient;
+        const { db } = await connectToDatabase();
         const records = db.collection(COLLECTION_NAME);
 
         // 设置响应头
@@ -83,68 +79,55 @@ module.exports = async (req, res) => {
         }
 
         if (req.method === 'POST') {
-            try {
-                console.log('收到 POST 请求:', req.body);
-                
-                const { type, amount, description } = req.body;
-                console.log('解析的数据:', { type, amount, description });
-
-                // 验证必填字段
-                if (!type || !amount) {
-                    return res.status(400).json({ error: '缺少必要字段' });
-                }
-
-                // 验证金额
-                if (isNaN(amount) || amount <= 0) {
-                    return res.status(400).json({ error: '无效的金额' });
-                }
-
-                const record = {
-                    userId: new ObjectId(decoded.userId),
-                    type: type,
-                    amount: parseFloat(amount),
-                    description: description || '',
-                    createdAt: new Date()
-                };
-
-                await records.insertOne(record);
-                
-                // 获取更新后的统计数据
-                const summary = await updateSummary(decoded.userId);
-                
-                // 添加记录时的日志
-                console.log('插入记录成功:', record);
-                console.log('更新统计成功:', summary);
-
-                // 数据库操作的日志
-                console.log('MongoDB 连接状态:', db.serverConfig.isConnected());
-                
-                return res.status(200).json({ 
-                    message: '记录添加成功',
-                    record,
-                    summary
-                });
-
-            } catch (error) {
-                console.error('POST 请求错误:', error);
-                return res.status(500).json({ error: '添加记录失败' });
+            // 添加记录
+            const { type, amount, description } = req.body;
+            
+            // 验证必填字段
+            if (!type || !amount) {
+                return res.status(400).json({ error: '缺少必要字段' });
             }
 
-        } else if (req.method === 'GET') {
-            console.log('处理 GET 请求');
-            console.log('用户ID:', decoded.userId);
+            // 验证金额
+            if (isNaN(amount) || amount <= 0) {
+                return res.status(400).json({ error: '无效的金额' });
+            }
+
+            const record = {
+                userId: new ObjectId(decoded.userId),
+                type: type,
+                amount: parseFloat(amount),
+                description: description || '',
+                createdAt: new Date()
+            };
+
+            await records.insertOne(record);
             
+            // 重新计算统计数据
+            const summary = await calculateSummary(records, decoded.userId);
+            
+            return res.status(200).json({ message: '添加成功', record, summary });
+
+        } else if (req.method === 'GET') {
             // 获取记录列表和统计数据
             const recordsList = await records
-                .find({ userId: new ObjectId(decoded.userId) })
+                .find(
+                    { userId: decoded.userId },
+                    { 
+                        projection: {
+                            type: 1,
+                            amount: 1,
+                            description: 1,
+                            category: 1,
+                            createdAt: 1,
+                            username: 1
+                        }
+                    }
+                )
                 .sort({ createdAt: -1 })
                 .limit(10)
                 .toArray();
-            
-            console.log('查询到的记录:', recordsList);
-            
+
             const summary = await calculateSummary(records, decoded.userId);
-            console.log('统计结果:', summary);
 
             return res.status(200).json({
                 records: recordsList,
@@ -193,52 +176,8 @@ module.exports = async (req, res) => {
 
 // 计算统计数据
 async function calculateSummary(records, userId) {
-    console.log('计算统计, userId:', userId);
-    
     const pipeline = [
-        { 
-            $match: { 
-                userId: new ObjectId(userId) 
-            } 
-        },
-        {
-            $group: {
-                _id: '$type',
-                total: { $sum: '$amount' }
-            }
-        }
-    ];
-
-    console.log('聚合管道:', JSON.stringify(pipeline));
-    const results = await records.aggregate(pipeline).toArray();
-    console.log('聚合结果:', results);
-    
-    const summary = {
-        totalIncome: 0,
-        totalExpense: 0
-    };
-
-    results.forEach(result => {
-        if (result._id === 'income') {
-            summary.totalIncome = result.total;
-        } else if (result._id === 'expense') {
-            summary.totalExpense = result.total;
-        }
-    });
-
-    console.log('计算后的统计:', summary);
-    return summary;
-}
-
-// 添加记录时更新统计数据
-async function updateSummary(userId) {
-    const { db } = await connectToDatabase();
-    const records = db.collection(COLLECTION_NAME);
-
-    const pipeline = [
-        {
-            $match: { userId: new ObjectId(userId) }
-        },
+        { $match: { userId: userId } },
         {
             $group: {
                 _id: '$type',
