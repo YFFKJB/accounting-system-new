@@ -89,10 +89,11 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: new ObjectId(decoded.userId),
-                t: type.charAt(0),  // 'i' 或 'e'
-                a: parseFloat(amount),
-                d: description || '',
-                c: new Date()
+                username: decoded.username,
+                type,
+                amount: parseFloat(amount),
+                description,
+                createdAt: new Date()
             };
 
             await records.insertOne(record);
@@ -124,25 +125,32 @@ module.exports = async (req, res) => {
 
         } else if (req.method === 'GET') {
             const recordsList = await records
-                .find({ userId: new ObjectId(decoded.userId) })
-                .sort({ c: -1 })
-                .limit(10)
+                .find({})
+                .sort({ createdAt: -1 })
                 .toArray();
 
-            // 转换数据格式
-            const formattedRecords = recordsList.map(r => ({
-                _id: r._id,
-                type: r.t === 'i' ? 'income' : 'expense',
-                amount: r.a,
-                description: r.d,
-                createdAt: r.c
-            }));
+            const totalIncome = recordsList
+                .filter(r => r.t === 'i')
+                .reduce((sum, r) => sum + r.a, 0);
+            
+            const totalExpense = recordsList
+                .filter(r => r.t === 'e')
+                .reduce((sum, r) => sum + r.a, 0);
 
-            const summary = await calculateSummary(records, decoded.userId);
+            const userStats = await calculateUserStats(recordsList);
+
+            const summary = { totalIncome, totalExpense };
 
             return res.status(200).json({
-                records: formattedRecords,
-                summary
+                records: recordsList.map(r => ({
+                    _id: r._id,
+                    type: r.t === 'i' ? 'income' : 'expense',
+                    amount: r.a,
+                    description: r.d,
+                    createdAt: r.c
+                })),
+                summary,
+                userStats
             });
 
         } else if (req.method === 'DELETE') {
@@ -231,4 +239,27 @@ async function calculateSummary(records, userId) {
     });
 
     return summary;
+}
+
+// 添加用户统计计算函数
+async function calculateUserStats(records) {
+    const userStats = {};
+    
+    records.forEach(record => {
+        if (!userStats[record.username]) {
+            userStats[record.username] = {
+                username: record.username,
+                totalIncome: 0,
+                totalExpense: 0
+            };
+        }
+        
+        if (record.type === 'income') {
+            userStats[record.username].totalIncome += record.amount;
+        } else {
+            userStats[record.username].totalExpense += record.amount;
+        }
+    });
+    
+    return Object.values(userStats);
 } 

@@ -177,10 +177,53 @@
             <!-- 记录列表 -->
             <div class="bg-white shadow-sm rounded-lg card-hover">
                 <div class="px-6 py-6 sm:p-8">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-6">最近记录</h3>
-                    <div id="records-list" class="space-y-4">
-                        <!-- 记录将通过 JavaScript 动态添加 -->
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">最近记录</h3>
+                        <div class="flex items-center space-x-4">
+                            <select id="userFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="all">所有用户</option>
+                                <!-- 用户选项将通过 JavaScript 动态添加 -->
+                            </select>
+                        </div>
                     </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">创建者</th>
+                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">类型</th>
+                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">金额</th>
+                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">描述</th>
+                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsList">
+                                <!-- 记录将通过 JavaScript 动态插入 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 在统计卡片下方添加用户统计表格 -->
+        <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover mb-8">
+            <div class="px-6 py-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">用户统计</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">用户名</th>
+                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">总收入</th>
+                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">总支出</th>
+                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">结余</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userStatsList">
+                            <!-- 用户统计将通过 JavaScript 动态插入 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -232,7 +275,9 @@
             records: [],
             summary: null,
             loading: false,
-            lastUpdate: 0
+            lastUpdate: 0,
+            userStats: [],
+            users: new Set()
         };
 
         // 优化加载记录函数
@@ -242,6 +287,7 @@
             if (!forceUpdate && STATE.lastUpdate && (now - STATE.lastUpdate < 30000)) {
                 updateRecordsList(STATE.records);
                 updateSummary(STATE.summary);
+                updateUserStats(STATE.userStats);
                 return;
             }
 
@@ -260,10 +306,17 @@
                 // 更新缓存
                 STATE.records = data.records;
                 STATE.summary = data.summary;
+                STATE.userStats = data.userStats;
                 STATE.lastUpdate = now;
-
+                
+                // 更新用户列表
+                STATE.users = new Set(data.records.map(record => record.username));
+                updateUserFilter();
+                
+                // 更新界面
                 updateRecordsList(data.records);
                 updateSummary(data.summary);
+                updateUserStats(data.userStats);
             } catch (error) {
                 console.error('加载记录失败:', error);
                 showError('加载记录失败，请刷新页面重试');
@@ -275,7 +328,7 @@
 
         // 添加加载状态显示
         function updateLoadingState() {
-            const recordsList = document.getElementById('records-list');
+            const recordsList = document.getElementById('recordsList');
             const loadingIndicator = document.getElementById('loadingIndicator');
             
             if (STATE.loading) {
@@ -298,35 +351,37 @@
         }
 
         function updateRecordsList(records) {
-            const recordsContainer = document.getElementById('records-list');
-            recordsContainer.innerHTML = '';
-
-            records.forEach(record => {
-                const recordElement = document.createElement('div');
-                recordElement.className = 'bg-white p-4 rounded-lg shadow mb-4 flex justify-between items-center';
-                
-                const isIncome = record.type === 'income';  // 使用转换后的格式
-                const amountColor = isIncome ? 'text-green-600' : 'text-red-600';
-                const amountPrefix = isIncome ? '+' : '-';
-                
-                recordElement.innerHTML = `
-                    <div>
-                        <div class="text-gray-600">${record.description || '无描述'}</div>
-                        <div class="text-sm text-gray-400">${new Date(record.createdAt).toLocaleString()}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="text-lg font-semibold ${amountColor} mr-4">
-                            ${amountPrefix}￥${record.amount.toFixed(2)}
+            const selectedUser = document.getElementById('userFilter').value;
+            const filteredRecords = selectedUser === 'all' 
+                ? records 
+                : records.filter(record => record.username === selectedUser);
+            
+            const recordsList = document.getElementById('recordsList');
+            recordsList.innerHTML = filteredRecords.map(record => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
+                        <span class="text-sm font-medium text-gray-900">${record.username}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            record.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">
+                            ${record.type === 'income' ? '收入' : '支出'}
                         </span>
-                        <button onclick="deleteRecord('${record._id}')" class="text-red-500 hover:text-red-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                recordsContainer.appendChild(recordElement);
-            });
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
+                        <span class="text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                            ${record.type === 'income' ? '+' : '-'}${record.amount}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
+                        ${record.description}
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
+                        ${new Date(record.createdAt).toLocaleString()}
+                    </td>
+                </tr>
+            `).join('');
         }
 
         // 更新统计数据
@@ -459,6 +514,47 @@
                 showError(error.message || '删除记录失败，请重试');
             }
         }
+
+        // 添加用户筛选器更新函数
+        function updateUserFilter() {
+            const userFilter = document.getElementById('userFilter');
+            const currentValue = userFilter.value;
+            
+            // 保存当前选择
+            const options = ['<option value="all">所有用户</option>'];
+            STATE.users.forEach(username => {
+                options.push(`<option value="${username}">${username}</option>`);
+            });
+            
+            userFilter.innerHTML = options.join('');
+            userFilter.value = currentValue;
+        }
+
+        // 添加用户统计更新函数
+        function updateUserStats(userStats) {
+            const userStatsList = document.getElementById('userStatsList');
+            userStatsList.innerHTML = userStats.map(stat => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <span class="text-sm font-medium text-gray-900">${stat.username}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <span class="text-sm text-green-600">¥${stat.totalIncome.toFixed(2)}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <span class="text-sm text-red-600">¥${stat.totalExpense.toFixed(2)}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <span class="text-sm text-blue-600">¥${(stat.totalIncome - stat.totalExpense).toFixed(2)}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 添加筛选器变化监听
+        document.getElementById('userFilter').addEventListener('change', () => {
+            updateRecordsList(STATE.records);
+        });
     </script>
 </body>
 </html> 
