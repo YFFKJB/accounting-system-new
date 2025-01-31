@@ -179,3 +179,19 @@
 
 - 项目负责人：[YFFKJB]
 - 项目地址：[https://github.com/YFFKJB/accounting-system-new]
+
+## 环境变量配置
+
+本项目需要配置以下环境变量：
+
+- `MONGODB_URI`: MongoDB 数据库连接字符串
+- `JWT_SECRET`: JWT 令牌加密密钥
+
+### 本地开发配置
+
+1. 复制 `.env.example` 文件并重命名为 `.env`
+2. 在 `.env` 文件中填入实际的环境变量值
+
+### 生产环境配置
+
+在 Vercel 部署时，请在 Vercel 项目设置的环境变量页面配置上述变量。

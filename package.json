@@ -9,8 +9,9 @@
     "mongodb": "^5.0.0"
   },
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel deploy"
+    "dev": "node scripts/check-env.js && vercel dev",
+    "build": "vercel build",
+    "check-env": "node scripts/check-env.js"
   },
   "author": "YFFKJB",
   "license": "MIT",
