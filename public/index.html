@@ -6,13 +6,8 @@
     <title>PilotsEYE工作室记账系统 - 登录</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .logo {
-            max-width: 300px;
-            margin: 0 auto 2rem;
-        }
-        
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -20,102 +15,88 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
 
-        .login-container {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            min-height: 100vh;
-        }
-
-        .login-card {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-field {
-            transition: all 0.3s ease;
-        }
-
-        .input-field:focus {
-            transform: translateY(-2px);
-        }
-
         .login-button {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
             transition: all 0.3s ease;
         }
 
         .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .input-field:focus {
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div class="sm:mx-auto sm:w-full sm:max-w-md animate-fade-in">
-            <!-- 添加 Logo -->
-            <img src="/images/pilots-eye-logo.png" alt="PilotsEYE Studios" class="logo">
-            <h2 class="text-center text-3xl font-extrabold text-gray-900">
-                PilotsEYE工作室记账系统
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex flex-col justify-center">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md px-4">
+        <div class="text-center animate-fade-in">
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+                PilotsEYE
             </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                请登录以继续使用
+            <p class="mt-2 text-lg text-gray-600">
+                工作室记账系统
             </p>
         </div>
 
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-fade-in" style="animation-delay: 0.2s">
-            <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                <form class="space-y-6" id="loginForm">
-                    <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700">
-                            用户名
-                        </label>
-                        <div class="mt-1">
-                            <input id="username" name="username" type="text" required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+        <div class="mt-8 bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 animate-fade-in" style="animation-delay: 0.1s">
+            <form class="space-y-6" id="loginForm">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">
+                        用户名
+                    </label>
+                    <div class="mt-1">
+                        <input id="username" name="username" type="text" required
+                            class="input-field appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200"
+                            placeholder="请输入用户名">
                     </div>
+                </div>
 
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">
-                            密码
-                        </label>
-                        <div class="mt-1">
-                            <input id="password" name="password" type="password" required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">
+                        密码
+                    </label>
+                    <div class="mt-1">
+                        <input id="password" name="password" type="password" required
+                            class="input-field appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200"
+                            placeholder="请输入密码">
                     </div>
+                </div>
 
-                    <div>
-                        <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            登录
-                        </button>
+                <div>
+                    <button type="submit"
+                        class="login-button w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                        登录
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200"></div>
                     </div>
-                </form>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            还没有账号？
+                        </span>
+                    </div>
+                </div>
 
                 <div class="mt-6">
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-gray-300"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-2 bg-white text-gray-500">
-                                还没有账号？
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="mt-6">
-                        <a href="/register.html"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100">
-                            注册新账号
-                        </a>
-                    </div>
+                    <a href="/register.html"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200">
+                        注册新账号
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- 错误提示 -->
+    <div id="errorMessage" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden"></div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
