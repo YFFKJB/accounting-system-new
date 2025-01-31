@@ -97,8 +97,8 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: new ObjectId(decoded.userId),
-                username: user.username,  // 添加用户名
-                t: type === 'income' ? 'i' : 'e',  // 使用简化字段
+                username: user.username,  // 保存用户名
+                t: type === 'income' ? 'i' : 'e',
                 a: parseFloat(amount),
                 d: description,
                 c: new Date()
@@ -106,13 +106,12 @@ module.exports = async (req, res) => {
 
             await records.insertOne(record);
             
-            // 获取最新的记录列表
+            // 获取最新数据
             const recordsList = await records
                 .find({})
                 .sort({ c: -1 })
                 .toArray();
 
-            // 计算新的统计数据
             const totalIncome = recordsList
                 .filter(r => r.t === 'i')
                 .reduce((sum, r) => sum + r.a, 0);
@@ -121,15 +120,13 @@ module.exports = async (req, res) => {
                 .filter(r => r.t === 'e')
                 .reduce((sum, r) => sum + r.a, 0);
 
-            // 计算用户统计
             const userStats = await calculateUserStats(recordsList);
 
-            // 返回格式化的数据
             return res.status(200).json({
                 message: '添加成功',
                 records: recordsList.map(r => ({
                     _id: r._id,
-                    username: r.username,
+                    username: r.username || '未知用户',
                     type: r.t === 'i' ? 'income' : 'expense',
                     amount: r.a,
                     description: r.d,
@@ -142,7 +139,7 @@ module.exports = async (req, res) => {
         } else if (req.method === 'GET') {
             const recordsList = await records
                 .find({})
-                .sort({ createdAt: -1 })
+                .sort({ c: -1 })
                 .toArray();
 
             const totalIncome = recordsList
@@ -158,7 +155,7 @@ module.exports = async (req, res) => {
             return res.status(200).json({
                 records: recordsList.map(r => ({
                     _id: r._id,
-                    username: r.username,  // 确保返回用户名
+                    username: r.username || '未知用户',
                     type: r.t === 'i' ? 'income' : 'expense',
                     amount: r.a,
                     description: r.d,
@@ -261,19 +258,19 @@ async function calculateUserStats(records) {
     const userStats = {};
     
     records.forEach(record => {
-        if (!userStats[record.username]) {
-            userStats[record.username] = {
-                username: record.username,
+        const username = record.username || '未知用户';
+        if (!userStats[username]) {
+            userStats[username] = {
+                username: username,
                 totalIncome: 0,
                 totalExpense: 0
             };
         }
         
-        // 修改这里使用简化字段名 t 和 a
-        if (record.t === 'i') {  // 使用 t 而不是 type
-            userStats[record.username].totalIncome += record.a;  // 使用 a 而不是 amount
+        if (record.t === 'i') {
+            userStats[username].totalIncome += record.a;
         } else {
-            userStats[record.username].totalExpense += record.a;  // 使用 a 而不是 amount
+            userStats[username].totalExpense += record.a;
         }
     });
     
