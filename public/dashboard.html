@@ -336,67 +336,64 @@
             document.getElementById('balance').textContent = `¥${(summary.totalIncome - summary.totalExpense).toFixed(2)}`;
         }
 
-        // 优化记录添加函数
-        document.getElementById('recordForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const submitButton = e.target.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-            
-            try {
-                submitButton.disabled = true;
-                submitButton.textContent = '添加中...';
-                
-                const record = {
-                    type: document.querySelector('input[name="type"]:checked').value,
-                    amount: parseFloat(document.getElementById('amount').value),
-                    description: document.getElementById('description').value || '无描述'
-                };
+        // 修改添加记录函数
+        async function addRecord() {
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value;
 
+            if (!amount || isNaN(amount) || amount <= 0) {
+                showError('请输入有效金额');
+                return;
+            }
+
+            try {
                 const response = await fetch('/api/records', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify(record)
+                    body: JSON.stringify({
+                        type,
+                        amount,
+                        description
+                    })
                 });
 
                 const data = await response.json();
-                
                 if (!response.ok) {
                     throw new Error(data.error || '添加记录失败');
                 }
 
-                // 直接更新本地状态
-                if (data.record) {
-                    STATE.records.unshift(data.record);
-                    STATE.records = STATE.records.slice(0, 10); // 保持最新的10条记录
-                }
-                if (data.summary) {
-                    STATE.summary = data.summary;
-                }
+                // 更新本地状态
+                STATE.records = data.records;
+                STATE.summary = data.summary;
                 STATE.lastUpdate = Date.now();
 
                 // 立即更新界面
-                updateRecordsList(STATE.records);
-                updateSummary(STATE.summary);
+                updateRecordsList(data.records);
+                updateSummary(data.summary);
                 
-                // 重置表单
-                e.target.reset();
+                // 清空输入
+                document.getElementById('amount').value = '';
+                document.getElementById('description').value = '';
                 
-                // 添加成功动画
-                const amountInput = document.getElementById('amount');
-                amountInput.classList.add('animate-success');
-                setTimeout(() => amountInput.classList.remove('animate-success'), 1000);
+                // 显示成功动画
+                const form = document.querySelector('form');
+                form.classList.add('animate-success');
+                setTimeout(() => form.classList.remove('animate-success'), 500);
 
             } catch (error) {
                 console.error('添加记录失败:', error);
                 showError(error.message || '添加记录失败，请重试');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = originalText;
             }
+        }
+
+        // 修改表单提交事件
+        document.getElementById('recordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await addRecord();
         });
 
         // 添加错误提示函数
@@ -430,7 +427,7 @@
             }, 500);
         });
 
-        // 优化删除记录功能
+        // 修改删除记录函数
         async function deleteRecord(recordId) {
             if (!confirm('确定要删除这条记录吗？')) return;
 
@@ -448,13 +445,10 @@
                     throw new Error(data.error || '删除记录失败');
                 }
 
-                // 直接从本地状态中移除记录
-                STATE.records = STATE.records.filter(record => record._id !== recordId);
-                
-                // 更新统计数据
-                if (data.summary) {
-                    STATE.summary = data.summary;
-                }
+                // 更新本地状态
+                STATE.records = data.records;
+                STATE.summary = data.summary;
+                STATE.lastUpdate = Date.now();
                 
                 // 立即更新界面
                 updateRecordsList(STATE.records);
