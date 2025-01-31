@@ -327,7 +327,7 @@
                 STATE.summary = data.summary;
                 STATE.userStats = data.userStats;
                 STATE.lastUpdate = Date.now();
-                STATE.users = new Set(data.records.map(record => record.username));
+                STATE.userList = data.userList;  // 保存用户列表
                 
                 // 更新界面
                 updateUserFilter();
@@ -543,19 +543,27 @@
             }
         }
 
-        // 添加用户筛选器更新函数
+        // 修改用户筛选器更新函数
         function updateUserFilter() {
             const userFilter = document.getElementById('userFilter');
             const currentValue = userFilter.value;
             
             // 保存当前选择
             const options = ['<option value="all">所有用户</option>'];
-            STATE.users.forEach(username => {
-                options.push(`<option value="${username}">${username}</option>`);
-            });
+            
+            // 使用从服务器获取的用户列表
+            if (data.userList) {
+                data.userList.forEach(username => {
+                    options.push(`<option value="${username}">${username}</option>`);
+                });
+            }
             
             userFilter.innerHTML = options.join('');
-            userFilter.value = currentValue;
+            
+            // 如果当前选择的值仍然有效，则保持选择
+            if (currentValue && (currentValue === 'all' || data.userList.includes(currentValue))) {
+                userFilter.value = currentValue;
+            }
         }
 
         // 添加用户统计更新函数

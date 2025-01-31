@@ -133,8 +133,13 @@ module.exports = async (req, res) => {
             });
 
         } else if (req.method === 'GET') {
-            const userFilter = req.query.user;  // 获取用户筛选参数
+            const userFilter = req.query.user;
             
+            // 获取所有用户列表
+            const users = db.collection('users');
+            const allUsers = await users.find({}).toArray();
+            const userList = allUsers.map(user => user.username);
+
             // 构建查询条件
             const query = userFilter && userFilter !== 'all' 
                 ? { username: userFilter }
@@ -174,7 +179,8 @@ module.exports = async (req, res) => {
                     createdAt: r.c
                 })),
                 summary: { totalIncome, totalExpense },
-                userStats
+                userStats,
+                userList  // 添加用户列表到返回数据中
             });
 
         } else if (req.method === 'DELETE') {
