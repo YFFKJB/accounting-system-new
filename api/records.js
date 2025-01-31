@@ -120,13 +120,12 @@ module.exports = async (req, res) => {
             // 获取记录列表和统计数据
             const recordsList = await records
                 .find(
-                    { userId: decoded.userId },
+                    { userId: new ObjectId(decoded.userId) },
                     { 
                         projection: {
                             type: 1,
                             amount: 1,
                             description: 1,
-                            category: 1,
                             createdAt: 1,
                             username: 1
                         }
@@ -152,7 +151,7 @@ module.exports = async (req, res) => {
             try {
                 const record = await records.findOne({
                     _id: new ObjectId(recordId),
-                    userId: decoded.userId
+                    userId: new ObjectId(decoded.userId)
                 });
 
                 if (!record) {
@@ -161,12 +160,20 @@ module.exports = async (req, res) => {
 
                 await records.deleteOne({ _id: new ObjectId(recordId) });
                 
-                // 重新计算统计数据
+                // 获取最新的统计数据
                 const summary = await calculateSummary(records, decoded.userId);
                 
+                // 获取最新的记录列表
+                const recordsList = await records
+                    .find({ userId: new ObjectId(decoded.userId) })
+                    .sort({ createdAt: -1 })
+                    .limit(10)
+                    .toArray();
+
                 return res.status(200).json({ 
                     message: '删除成功',
-                    summary 
+                    summary,
+                    records: recordsList
                 });
             } catch (error) {
                 console.error('删除记录失败:', error);
