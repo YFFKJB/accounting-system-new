@@ -3,230 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工作室记账系统 - 仪表盘</title>
+    <title>工作室记账系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@heroicons/react@2.0.18/outline/dist/index.min.css" rel="stylesheet">
     <style>
-        @keyframes slideIn {
-            from { transform: translateY(-10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-out forwards;
-        }
-        .hover-scale {
-            transition: transform 0.2s ease;
-        }
-        .hover-scale:hover {
-            transform: scale(1.01);
-        }
-        .amount-input {
-            font-size: 2.5rem;
-            height: 4rem;
-            text-align: center;
-        }
-        .text-2xl {
-            font-size: 1.75rem;
-        }
-        .nav-title {
-            font-size: 1.75rem;
-        }
-        .summary-amount {
-            font-size: 2.25rem;
-        }
-        .form-label {
-            font-size: 1.125rem;
-        }
         .type-switch {
             display: flex;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            overflow: hidden;
+            gap: 1rem;
             margin-bottom: 1rem;
-            padding: 0.25rem;
-            background: #f9fafb;
         }
-        .type-switch label {
+        .type-switch button {
             flex: 1;
-            padding: 0.75rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
+            padding: 0.5rem;
             border-radius: 0.5rem;
-            transition: all 0.3s ease;
             font-weight: 500;
         }
-        .type-switch input[type="radio"] {
-            display: none;
-        }
-        .type-switch input[type="radio"]:checked + label.income {
+        .type-switch button.active.income {
             background-color: #10b981;
             color: white;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
         }
-        .type-switch input[type="radio"]:checked + label.expense {
+        .type-switch button.active.expense {
             background-color: #ef4444;
             color: white;
-            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
         }
-        .card-hover {
-            transition: all 0.3s ease;
+        .amount-input {
+            font-size: 2rem;
+            text-align: center;
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            outline: none;
         }
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .mobile-tab {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 2px solid transparent;
         }
-        @keyframes success-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .animate-success {
-            animation: success-pulse 0.5s ease-out;
+        .mobile-tab.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
         }
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- 顶部导航栏 -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="nav-title font-bold text-gray-900">工作室记账系统</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
-                    <a href="/admin.html" id="adminLink" class="hidden inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                        用户管理
-                    </a>
-                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600">
-                        退出登录
-                    </button>
-                </div>
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm">
+        <div class="px-4 py-2 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-gray-600">欢迎，</span>
+                <span id="username" class="font-medium"></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/admin.html" id="adminLink" class="hidden text-indigo-600">管理</a>
+                <button onclick="logout()" class="text-red-500">退出</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- 修改统计卡片布局 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">总收入</dt>
-                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-emerald-600" id="totalIncome">¥0.00</dd>
+    <!-- 统计卡片 -->
+    <div class="p-4 bg-white">
+        <div class="text-2xl font-bold text-center mb-2">¥<span id="balance">0.00</span></div>
+        <div class="text-gray-500 text-sm text-center">结余</div>
+        <div class="flex justify-between mt-4">
+            <div>
+                <div class="text-green-600">¥<span id="totalIncome">0.00</span></div>
+                <div class="text-xs text-gray-500">总收入</div>
             </div>
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">总支出</dt>
-                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-red-600" id="totalExpense">¥0.00</dd>
-            </div>
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">结余</dt>
-                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-blue-600" id="balance">¥0.00</dd>
+            <div>
+                <div class="text-red-600">¥<span id="totalExpense">0.00</span></div>
+                <div class="text-xs text-gray-500">总支出</div>
             </div>
         </div>
+    </div>
 
-        <!-- 修改主要内容布局 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <!-- 添加记录表单 -->
-            <div class="bg-white shadow-sm rounded-lg card-hover">
-                <div class="p-4 sm:p-6">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4 sm:mb-6">添加记录</h3>
-                    <form id="recordForm" class="space-y-4 sm:space-y-6">
-                        <!-- 收支类型切换 -->
-                        <div class="type-switch">
-                            <input type="radio" name="type" id="income" value="income" checked>
-                            <label for="income" class="income text-sm sm:text-base">收入</label>
-                            <input type="radio" name="type" id="expense" value="expense">
-                            <label for="expense" class="expense text-sm sm:text-base">支出</label>
-                        </div>
-
-                        <!-- 金额输入 -->
-                        <div class="space-y-2">
-                            <label class="block text-sm sm:text-base font-medium text-gray-700">金额</label>
-                            <div class="relative rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-xl sm:text-2xl text-gray-500">¥</span>
-                                </div>
-                                <input type="number" id="amount" step="0.01" 
-                                    class="pl-8 sm:pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg sm:text-xl py-2 sm:py-3" 
-                                    placeholder="0.00" required>
-                            </div>
-                        </div>
-
-                        <!-- 描述输入 -->
-                        <div class="space-y-2">
-                            <label class="block text-sm sm:text-base font-medium text-gray-700">描述</label>
-                            <input type="text" id="description" 
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base sm:text-lg py-2 sm:py-3" 
-                                placeholder="请输入描述..." required>
-                        </div>
-
-                        <button type="submit" 
-                            class="w-full inline-flex justify-center py-2 sm:py-3 px-4 border border-transparent text-base sm:text-lg font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
-                            添加记录
-                        </button>
-                    </form>
-                </div>
+    <!-- 添加记录表单 -->
+    <div class="p-4">
+        <form id="recordForm" class="space-y-4">
+            <div class="type-switch">
+                <button type="button" class="income active" onclick="switchType('income')">收入</button>
+                <button type="button" class="expense" onclick="switchType('expense')">支出</button>
             </div>
+            <input type="hidden" name="type" id="type" value="income">
+            <input type="number" id="amount" class="amount-input" placeholder="0.00" required>
+            <input type="text" id="description" class="w-full p-2 border rounded-lg" placeholder="添加说明..." required>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg">
+                添加记录
+            </button>
+        </form>
+    </div>
 
-            <!-- 记录列表 -->
-            <div class="bg-white shadow-sm rounded-lg card-hover">
-                <div class="p-4 sm:p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
-                        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-2 sm:mb-0">最近记录</h3>
-                        <select id="userFilter" class="w-full sm:w-auto rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                            <option value="all">所有用户</option>
-                        </select>
-                    </div>
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
-                        <div class="inline-block min-w-full align-middle">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">创建者</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">类型</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">金额</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">描述</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">时间</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recordsList" class="divide-y divide-gray-200">
-                                    <!-- 记录将通过 JavaScript 动态插入 -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- 移动端标签页 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t">
+        <div class="grid grid-cols-2 divide-x">
+            <div class="mobile-tab active" onclick="switchTab('records')">最近记录</div>
+            <div class="mobile-tab" onclick="switchTab('stats')">用户统计</div>
         </div>
+    </div>
 
-        <!-- 用户统计表格 -->
-        <div class="mt-4 sm:mt-6 bg-white overflow-hidden shadow-sm rounded-lg card-hover">
-            <div class="p-4 sm:p-6">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">用户统计</h3>
-                <div class="overflow-x-auto -mx-4 sm:mx-0">
-                    <div class="inline-block min-w-full align-middle">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr>
-                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">用户名</th>
-                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">总收入</th>
-                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">总支出</th>
-                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">结余</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userStatsList" class="divide-y divide-gray-200">
-                                <!-- 用户统计将通过 JavaScript 动态插入 -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <!-- 记录列表 -->
+    <div id="recordsTab" class="pb-16">
+        <div class="px-4 py-2 flex justify-between items-center">
+            <h3 class="text-gray-600">最近记录</h3>
+            <select id="userFilter" class="text-sm border rounded p-1">
+                <option value="all">所有用户</option>
+            </select>
         </div>
-    </main>
+        <div id="recordsList" class="divide-y">
+            <!-- 记录将通过 JavaScript 动态插入 -->
+        </div>
+    </div>
+
+    <!-- 用户统计 -->
+    <div id="statsTab" class="hidden pb-16">
+        <div id="userStatsList" class="divide-y">
+            <!-- 用户统计将通过 JavaScript 动态插入 -->
+        </div>
+    </div>
 
     <script>
         // 检查登录状态
@@ -356,34 +247,22 @@
                 ? records 
                 : records.filter(record => record.username === selectedUser);
             
-            // 只显示前6条记录
             const limitedRecords = filteredRecords.slice(0, 6);
             
             const recordsList = document.getElementById('recordsList');
             recordsList.innerHTML = limitedRecords.map(record => `
-                <tr>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="text-sm font-medium text-gray-900">${record.username}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            record.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }">
-                            ${record.type === 'income' ? '收入' : '支出'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                        <span class="text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                <div class="p-4 bg-white">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">${record.username}</span>
+                        <span class="text-sm text-gray-500">${new Date(record.createdAt).toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-gray-900">${record.description}</span>
+                        <span class="${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
                             ${record.type === 'income' ? '+' : '-'}${record.amount}
                         </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
-                        ${record.description}
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
-                        ${new Date(record.createdAt).toLocaleString()}
-                    </td>
-                </tr>
+                    </div>
+                </div>
             `).join('');
         }
 
@@ -541,20 +420,16 @@
             if (!userStats) return;
             const userStatsList = document.getElementById('userStatsList');
             userStatsList.innerHTML = userStats.map(stat => `
-                <tr>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        <span class="text-sm font-medium text-gray-900">${stat.username}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        <span class="text-sm text-green-600">¥${stat.totalIncome.toFixed(2)}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        <span class="text-sm text-red-600">¥${stat.totalExpense.toFixed(2)}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        <span class="text-sm text-blue-600">¥${(stat.totalIncome - stat.totalExpense).toFixed(2)}</span>
-                    </td>
-                </tr>
+                <div class="p-4 bg-white">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">${stat.username}</span>
+                        <span class="text-blue-600">¥${(stat.totalIncome - stat.totalExpense).toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-sm">
+                        <span class="text-green-600">收入: ¥${stat.totalIncome.toFixed(2)}</span>
+                        <span class="text-red-600">支出: ¥${stat.totalExpense.toFixed(2)}</span>
+                    </div>
+                </div>
             `).join('');
         }
 
@@ -562,6 +437,25 @@
         document.getElementById('userFilter').addEventListener('change', () => {
             updateRecordsList(STATE.records);
         });
+
+        // 添加新的函数
+        function switchType(type) {
+            document.getElementById('type').value = type;
+            document.querySelectorAll('.type-switch button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.type-switch .${type}`).classList.add('active');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.mobile-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            document.querySelector(`.mobile-tab:${tab === 'records' ? 'first-child' : 'last-child'}`).classList.add('active');
+            
+            document.getElementById('recordsTab').classList.toggle('hidden', tab !== 'records');
+            document.getElementById('statsTab').classList.toggle('hidden', tab !== 'stats');
+        }
     </script>
 </body>
 </html> 
