@@ -241,7 +241,7 @@ async function calculateSummary(records, userId) {
     return summary;
 }
 
-// 添加用户统计计算函数
+// 修改用户统计计算函数
 async function calculateUserStats(records) {
     const userStats = {};
     
@@ -254,10 +254,11 @@ async function calculateUserStats(records) {
             };
         }
         
-        if (record.type === 'income') {
-            userStats[record.username].totalIncome += record.amount;
+        // 修改这里使用简化字段名 t 和 a
+        if (record.t === 'i') {  // 使用 t 而不是 type
+            userStats[record.username].totalIncome += record.a;  // 使用 a 而不是 amount
         } else {
-            userStats[record.username].totalExpense += record.amount;
+            userStats[record.username].totalExpense += record.a;  // 使用 a 而不是 amount
         }
     });
     
