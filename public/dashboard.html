@@ -374,7 +374,7 @@
             
             const recordsList = document.getElementById('recordsList');
             recordsList.innerHTML = records.map(record => `
-                <tr>
+                <tr data-record-id="${record._id}" data-username="${record.username}">
                     <td class="px-6 py-4 border-b border-gray-500">
                         <span class="table-cell text-sm font-medium text-gray-900">${record.username}</span>
                     </td>
@@ -400,7 +400,8 @@
                         ${(isAdmin || record.username === currentUsername) ? `
                             <i class="ri-delete-bin-5-line delete-icon text-lg" 
                                onclick="deleteRecord('${record._id}')" 
-                               title="删除记录"></i>
+                               title="${isAdmin ? '删除记录' : (record.username === currentUsername ? '删除记录' : '无权限删除')}"
+                               style="${(!isAdmin && record.username !== currentUsername) ? 'opacity: 0.5; cursor: not-allowed;' : ''}"></i>
                         ` : ''}
                     </td>
                 </tr>
@@ -510,6 +511,16 @@
 
         // 修改删除记录函数
         async function deleteRecord(recordId) {
+            const currentUsername = localStorage.getItem('username');
+            const isAdmin = document.getElementById('adminLink').style.display !== 'none';
+            const recordUsername = document.querySelector(`[data-record-id="${recordId}"]`).getAttribute('data-username');
+
+            // 检查权限
+            if (!isAdmin && recordUsername !== currentUsername) {
+                showError('无权限操作其他用户的记录');
+                return;
+            }
+
             if (!confirm('确定要删除这条记录吗？')) return;
 
             try {
@@ -533,9 +544,9 @@
                 STATE.lastUpdate = Date.now();
                 
                 // 立即更新界面
-                updateRecordsList(STATE.records);
-                updateSummary(STATE.summary);
-                updateUserStats(STATE.userStats);
+                updateRecordsList(data.records);
+                updateSummary(data.summary);
+                updateUserStats(data.userStats);
 
             } catch (error) {
                 console.error('删除记录失败:', error);
