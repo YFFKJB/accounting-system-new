@@ -143,7 +143,15 @@
                             <label for="expense" class="expense text-sm sm:text-base">支出</label>
                         </div>
 
-                        <!-- 金额输入 -->
+                        <!-- 描述输入 (移到前面) -->
+                        <div class="space-y-2">
+                            <label class="block text-sm sm:text-base font-medium text-gray-700">描述</label>
+                            <input type="text" id="description" 
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base sm:text-lg py-2 sm:py-3" 
+                                placeholder="请输入描述..." required>
+                        </div>
+
+                        <!-- 金额输入 (移到后面) -->
                         <div class="space-y-2">
                             <label class="block text-sm sm:text-base font-medium text-gray-700">金额</label>
                             <div class="relative rounded-md shadow-sm">
@@ -154,14 +162,6 @@
                                     class="pl-8 sm:pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg sm:text-xl py-2 sm:py-3" 
                                     placeholder="0.00" required>
                             </div>
-                        </div>
-
-                        <!-- 描述输入 -->
-                        <div class="space-y-2">
-                            <label class="block text-sm sm:text-base font-medium text-gray-700">描述</label>
-                            <input type="text" id="description" 
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base sm:text-lg py-2 sm:py-3" 
-                                placeholder="请输入描述..." required>
                         </div>
 
                         <button type="submit" 
