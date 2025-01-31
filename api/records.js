@@ -110,6 +110,7 @@ module.exports = async (req, res) => {
             const recordsList = await records
                 .find({})
                 .sort({ c: -1 })
+                .limit(6)  // 限制返回6条记录
                 .toArray();
 
             const totalIncome = recordsList
@@ -140,6 +141,7 @@ module.exports = async (req, res) => {
             const recordsList = await records
                 .find({})
                 .sort({ c: -1 })
+                .limit(6)  // 限制返回6条记录
                 .toArray();
 
             const totalIncome = recordsList

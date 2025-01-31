@@ -357,8 +357,11 @@
                 ? records 
                 : records.filter(record => record.username === selectedUser);
             
+            // 只显示前6条记录
+            const limitedRecords = filteredRecords.slice(0, 6);
+            
             const recordsList = document.getElementById('recordsList');
-            recordsList.innerHTML = filteredRecords.map(record => `
+            recordsList.innerHTML = limitedRecords.map(record => `
                 <tr>
                     <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
                         <span class="text-sm font-medium text-gray-900">${record.username}</span>
