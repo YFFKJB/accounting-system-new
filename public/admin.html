@@ -58,8 +58,6 @@
     </div>
 
     <script>
-        const API_BASE = 'https://accounting-system-new.vercel.app/api';
-
         // 检查登录状态
         function checkAuth() {
             const token = localStorage.getItem('token');
@@ -73,7 +71,7 @@
         // 加载用户列表
         async function loadUsers() {
             try {
-                const response = await fetch(`${API_BASE}/admin/users`, {
+                const response = await fetch('/api/admin/users', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -121,7 +119,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+                const response = await fetch('/api/admin/users/' + userId, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`

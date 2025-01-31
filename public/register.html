@@ -98,8 +98,6 @@
     </div>
 
     <script>
-        const API_BASE = 'https://accounting-system-new.vercel.app/api';
-
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -120,7 +118,7 @@
                 submitButton.textContent = '注册中...';
                 errorMessage.classList.add('hidden');
                 
-                const response = await fetch(`${API_BASE}/register`, {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
