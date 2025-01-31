@@ -16,22 +16,10 @@ async function connectToDatabase() {
         return { db: cachedDb, client: cachedClient };
     }
 
-    const client = new MongoClient(MONGODB_URI, {
-        compressors: ['zlib'],
-        zlibCompressionLevel: 9
-    });
+    const client = new MongoClient(MONGODB_URI);
     await client.connect();
     const db = client.db(DB_NAME);
     
-    // 优化索引策略
-    const records = db.collection(COLLECTION_NAME);
-    // 创建复合索引，减少索引数量
-    await records.createIndex({ 
-        userId: 1, 
-        createdAt: -1,
-        type: 1 
-    });
-
     cachedDb = db;
     cachedClient = client;
     
@@ -97,7 +85,7 @@ module.exports = async (req, res) => {
 
             const record = {
                 userId: new ObjectId(decoded.userId),
-                username: user.username,  // 保存用户名
+                username: user.username,
                 t: type === 'income' ? 'i' : 'e',
                 a: parseFloat(amount),
                 d: description,
@@ -190,8 +178,7 @@ module.exports = async (req, res) => {
 
             try {
                 const record = await records.findOne({
-                    _id: new ObjectId(recordId),
-                    userId: new ObjectId(decoded.userId)
+                    _id: new ObjectId(recordId)
                 });
 
                 if (!record) {
@@ -200,32 +187,44 @@ module.exports = async (req, res) => {
 
                 await records.deleteOne({ _id: new ObjectId(recordId) });
                 
-                // 获取最新的统计数据
-                const summary = await calculateSummary(records, decoded.userId);
-                
-                // 获取最新的记录列表
-                const recordsList = await records
-                    .find({ userId: new ObjectId(decoded.userId) })
-                    .project({
-                        type: { $cond: { if: { $eq: ["$t", "i"] }, then: "income", else: "expense" } },
-                        amount: "$a",
-                        description: "$d",
-                        createdAt: "$c"
-                    })
-                    .sort({ c: -1 })
-                    .limit(10)
+                // 获取最新数据
+                const allRecords = await records
+                    .find({})
                     .toArray();
 
-                return res.status(200).json({ 
+                const recentRecords = await records
+                    .find({})
+                    .sort({ c: -1 })
+                    .limit(6)
+                    .toArray();
+
+                const userStats = await calculateUserStats(allRecords);
+
+                const totalIncome = allRecords
+                    .filter(r => r.t === 'i')
+                    .reduce((sum, r) => sum + r.a, 0);
+                
+                const totalExpense = allRecords
+                    .filter(r => r.t === 'e')
+                    .reduce((sum, r) => sum + r.a, 0);
+
+                return res.status(200).json({
                     message: '删除成功',
-                    summary,
-                    records: recordsList
+                    records: recentRecords.map(r => ({
+                        _id: r._id,
+                        username: r.username || '未知用户',
+                        type: r.t === 'i' ? 'income' : 'expense',
+                        amount: r.a,
+                        description: r.d,
+                        createdAt: r.c
+                    })),
+                    summary: { totalIncome, totalExpense },
+                    userStats
                 });
             } catch (error) {
                 console.error('删除记录失败:', error);
                 return res.status(500).json({ error: '删除记录失败' });
             }
-
         } else {
             return res.status(405).json({ error: '不支持的请求方法' });
         }
@@ -235,40 +234,6 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: '服务器错误' });
     }
 };
-
-// 计算统计数据
-async function calculateSummary(records, userId) {
-    const pipeline = [
-        { 
-            $match: { 
-                userId: new ObjectId(userId) 
-            } 
-        },
-        {
-            $group: {
-                _id: '$t',  // 使用新的字段名 t
-                total: { $sum: '$a' }  // 使用新的字段名 a
-            }
-        }
-    ];
-
-    const results = await records.aggregate(pipeline).toArray();
-    
-    const summary = {
-        totalIncome: 0,
-        totalExpense: 0
-    };
-
-    results.forEach(result => {
-        if (result._id === 'i') {  // 检查新的类型标识
-            summary.totalIncome = result.total;
-        } else if (result._id === 'e') {
-            summary.totalExpense = result.total;
-        }
-    });
-
-    return summary;
-}
 
 // 修改用户统计计算函数
 async function calculateUserStats(records) {
