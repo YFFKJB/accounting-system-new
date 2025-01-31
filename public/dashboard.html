@@ -191,6 +191,7 @@
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">金额</th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">描述</th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                        <th class="px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody id="recordsList" class="divide-y divide-gray-200">
@@ -358,6 +359,8 @@
             
             // 只显示前6条记录
             const limitedRecords = filteredRecords.slice(0, 6);
+            const currentUsername = localStorage.getItem('username');
+            const isAdmin = document.getElementById('adminLink').style.display !== 'none';
             
             const recordsList = document.getElementById('recordsList');
             recordsList.innerHTML = limitedRecords.map(record => `
@@ -382,6 +385,14 @@
                     </td>
                     <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-sm">
                         ${new Date(record.createdAt).toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500 text-right">
+                        ${(isAdmin || record.username === currentUsername) ? `
+                            <button onclick="deleteRecord('${record._id}')" 
+                                class="text-red-600 hover:text-red-900 text-sm font-medium hover:underline focus:outline-none">
+                                删除
+                            </button>
+                        ` : ''}
                     </td>
                 </tr>
             `).join('');

@@ -185,6 +185,15 @@ module.exports = async (req, res) => {
                     return res.status(404).json({ error: '记录不存在' });
                 }
 
+                // 检查权限：只有管理员或记录创建者可以删除
+                const users = db.collection('users');
+                const user = await users.findOne({ _id: new ObjectId(decoded.userId) });
+                const isAdmin = user.isAdmin === true;
+
+                if (!isAdmin && record.userId.toString() !== decoded.userId) {
+                    return res.status(403).json({ error: '没有权限删除此记录' });
+                }
+
                 await records.deleteOne({ _id: new ObjectId(recordId) });
                 
                 // 获取最新数据
