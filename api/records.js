@@ -87,40 +87,56 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ error: '无效的金额' });
             }
 
+            // 获取用户信息
+            const users = db.collection('users');
+            const user = await users.findOne({ _id: new ObjectId(decoded.userId) });
+            
+            if (!user) {
+                return res.status(404).json({ error: '用户不存在' });
+            }
+
             const record = {
                 userId: new ObjectId(decoded.userId),
-                username: decoded.username,
-                type,
-                amount: parseFloat(amount),
-                description,
-                createdAt: new Date()
+                username: user.username,  // 添加用户名
+                t: type === 'income' ? 'i' : 'e',  // 使用简化字段
+                a: parseFloat(amount),
+                d: description,
+                c: new Date()
             };
 
             await records.insertOne(record);
             
-            // 获取最新的统计数据
-            const summary = await calculateSummary(records, decoded.userId);
-            
-            // 获取最新的记录列表，并转换为前端需要的格式
+            // 获取最新的记录列表
             const recordsList = await records
-                .find({ userId: new ObjectId(decoded.userId) })
+                .find({})
                 .sort({ c: -1 })
-                .limit(10)
                 .toArray();
 
-            // 转换数据格式
-            const formattedRecords = recordsList.map(r => ({
-                _id: r._id,
-                type: r.t === 'i' ? 'income' : 'expense',
-                amount: r.a,
-                description: r.d,
-                createdAt: r.c
-            }));
+            // 计算新的统计数据
+            const totalIncome = recordsList
+                .filter(r => r.t === 'i')
+                .reduce((sum, r) => sum + r.a, 0);
+            
+            const totalExpense = recordsList
+                .filter(r => r.t === 'e')
+                .reduce((sum, r) => sum + r.a, 0);
 
-            return res.status(200).json({ 
-                message: '添加成功', 
-                records: formattedRecords,
-                summary
+            // 计算用户统计
+            const userStats = await calculateUserStats(recordsList);
+
+            // 返回格式化的数据
+            return res.status(200).json({
+                message: '添加成功',
+                records: recordsList.map(r => ({
+                    _id: r._id,
+                    username: r.username,
+                    type: r.t === 'i' ? 'income' : 'expense',
+                    amount: r.a,
+                    description: r.d,
+                    createdAt: r.c
+                })),
+                summary: { totalIncome, totalExpense },
+                userStats
             });
 
         } else if (req.method === 'GET') {
@@ -139,17 +155,16 @@ module.exports = async (req, res) => {
 
             const userStats = await calculateUserStats(recordsList);
 
-            const summary = { totalIncome, totalExpense };
-
             return res.status(200).json({
                 records: recordsList.map(r => ({
                     _id: r._id,
+                    username: r.username,  // 确保返回用户名
                     type: r.t === 'i' ? 'income' : 'expense',
                     amount: r.a,
                     description: r.d,
                     createdAt: r.c
                 })),
-                summary,
+                summary: { totalIncome, totalExpense },
                 userStats
             });
 
