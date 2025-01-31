@@ -112,62 +112,60 @@
     </nav>
 
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- 统计卡片 -->
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover">
-                <div class="px-4 py-5 sm:p-6">
-                    <dt class="text-sm font-medium text-gray-500 truncate">总收入</dt>
-                    <dd class="mt-1 summary-amount font-semibold text-emerald-600 animate-slide-in" id="totalIncome">¥0.00</dd>
-                </div>
+        <!-- 修改统计卡片布局 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">总收入</dt>
+                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-emerald-600" id="totalIncome">¥0.00</dd>
             </div>
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover">
-                <div class="px-4 py-5 sm:p-6">
-                    <dt class="text-sm font-medium text-gray-500 truncate">总支出</dt>
-                    <dd class="mt-1 summary-amount font-semibold text-red-600 animate-slide-in" id="totalExpense">¥0.00</dd>
-                </div>
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">总支出</dt>
+                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-red-600" id="totalExpense">¥0.00</dd>
             </div>
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover">
-                <div class="px-4 py-5 sm:p-6">
-                    <dt class="text-sm font-medium text-gray-500 truncate">结余</dt>
-                    <dd class="mt-1 summary-amount font-semibold text-blue-600 animate-slide-in" id="balance">¥0.00</dd>
-                </div>
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">结余</dt>
+                <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-blue-600" id="balance">¥0.00</dd>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- 修改主要内容布局 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <!-- 添加记录表单 -->
             <div class="bg-white shadow-sm rounded-lg card-hover">
-                <div class="px-6 py-6 sm:p-8">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-6">添加记录</h3>
-                    <form id="recordForm" class="space-y-6">
+                <div class="p-4 sm:p-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4 sm:mb-6">添加记录</h3>
+                    <form id="recordForm" class="space-y-4 sm:space-y-6">
+                        <!-- 收支类型切换 -->
                         <div class="type-switch">
                             <input type="radio" name="type" id="income" value="income" checked>
-                            <label for="income" class="income hover:bg-emerald-50">收入</label>
+                            <label for="income" class="income text-sm sm:text-base">收入</label>
                             <input type="radio" name="type" id="expense" value="expense">
-                            <label for="expense" class="expense hover:bg-red-50">支出</label>
+                            <label for="expense" class="expense text-sm sm:text-base">支出</label>
                         </div>
 
+                        <!-- 金额输入 -->
                         <div class="space-y-2">
-                            <label class="block form-label font-medium text-gray-700">类目</label>
-                            <input type="text" id="description" 
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg py-3" 
-                                placeholder="请输入类目..." required>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block form-label font-medium text-gray-700">金额</label>
+                            <label class="block text-sm sm:text-base font-medium text-gray-700">金额</label>
                             <div class="relative rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                                    <span class="text-3xl text-gray-500">¥</span>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-xl sm:text-2xl text-gray-500">¥</span>
                                 </div>
                                 <input type="number" id="amount" step="0.01" 
-                                    class="amount-input pl-14 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
+                                    class="pl-8 sm:pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg sm:text-xl py-2 sm:py-3" 
                                     placeholder="0.00" required>
                             </div>
                         </div>
 
+                        <!-- 描述输入 -->
+                        <div class="space-y-2">
+                            <label class="block text-sm sm:text-base font-medium text-gray-700">描述</label>
+                            <input type="text" id="description" 
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base sm:text-lg py-2 sm:py-3" 
+                                placeholder="请输入描述..." required>
+                        </div>
+
                         <button type="submit" 
-                            class="w-full inline-flex justify-center py-4 px-4 border border-transparent text-xl font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 hover:shadow-lg">
+                            class="w-full inline-flex justify-center py-2 sm:py-3 px-4 border border-transparent text-base sm:text-lg font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
                             添加记录
                         </button>
                     </form>
@@ -176,54 +174,55 @@
 
             <!-- 记录列表 -->
             <div class="bg-white shadow-sm rounded-lg card-hover">
-                <div class="px-6 py-6 sm:p-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-medium leading-6 text-gray-900">最近记录</h3>
-                        <div class="flex items-center space-x-4">
-                            <select id="userFilter" class="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="all">所有用户</option>
-                                <!-- 用户选项将通过 JavaScript 动态添加 -->
-                            </select>
-                        </div>
+                <div class="p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-2 sm:mb-0">最近记录</h3>
+                        <select id="userFilter" class="w-full sm:w-auto rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                            <option value="all">所有用户</option>
+                        </select>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">创建者</th>
-                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">类型</th>
-                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">金额</th>
-                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">描述</th>
-                                    <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">时间</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recordsList">
-                                <!-- 记录将通过 JavaScript 动态插入 -->
-                            </tbody>
-                        </table>
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                        <div class="inline-block min-w-full align-middle">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">创建者</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">金额</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">描述</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recordsList" class="divide-y divide-gray-200">
+                                    <!-- 记录将通过 JavaScript 动态插入 -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 在统计卡片下方添加用户统计表格 -->
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover mb-8">
-            <div class="px-6 py-6">
+        <!-- 用户统计表格 -->
+        <div class="mt-4 sm:mt-6 bg-white overflow-hidden shadow-sm rounded-lg card-hover">
+            <div class="p-4 sm:p-6">
                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">用户统计</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">用户名</th>
-                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">总收入</th>
-                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">总支出</th>
-                                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-500 uppercase tracking-wider">结余</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userStatsList">
-                            <!-- 用户统计将通过 JavaScript 动态插入 -->
-                        </tbody>
-                    </table>
+                <div class="overflow-x-auto -mx-4 sm:mx-0">
+                    <div class="inline-block min-w-full align-middle">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">总收入</th>
+                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">总支出</th>
+                                    <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">结余</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userStatsList" class="divide-y divide-gray-200">
+                                <!-- 用户统计将通过 JavaScript 动态插入 -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
