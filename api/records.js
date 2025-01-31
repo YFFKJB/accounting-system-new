@@ -83,44 +83,52 @@ module.exports = async (req, res) => {
         }
 
         if (req.method === 'POST') {
-            // 添加记录
-            const { type, amount, category, description } = req.body;
-            
-            // 验证必填字段
-            if (!type || !amount || !category) {
-                return res.status(400).json({ error: '缺少必要字段' });
+            try {
+                console.log('收到 POST 请求:', req.body);
+                
+                const { type, amount, description } = req.body;
+                console.log('解析的数据:', { type, amount, description });
+
+                // 验证必填字段
+                if (!type || !amount) {
+                    return res.status(400).json({ error: '缺少必要字段' });
+                }
+
+                // 验证金额
+                if (isNaN(amount) || amount <= 0) {
+                    return res.status(400).json({ error: '无效的金额' });
+                }
+
+                const record = {
+                    userId: new ObjectId(decoded.userId),
+                    type: type,
+                    amount: parseFloat(amount),
+                    description: description || '',
+                    createdAt: new Date()
+                };
+
+                await records.insertOne(record);
+                
+                // 获取更新后的统计数据
+                const summary = await updateSummary(decoded.userId);
+                
+                // 添加记录时的日志
+                console.log('插入记录成功:', record);
+                console.log('更新统计成功:', summary);
+
+                // 数据库操作的日志
+                console.log('MongoDB 连接状态:', db.serverConfig.isConnected());
+                
+                return res.status(200).json({ 
+                    message: '记录添加成功',
+                    record,
+                    summary
+                });
+
+            } catch (error) {
+                console.error('POST 请求错误:', error);
+                return res.status(500).json({ error: '添加记录失败' });
             }
-
-            // 验证金额
-            if (isNaN(amount) || amount <= 0) {
-                return res.status(400).json({ error: '无效的金额' });
-            }
-
-            const record = {
-                userId: new ObjectId(decoded.userId),
-                type: req.body.type,
-                amount: parseFloat(req.body.amount),
-                description: req.body.description,
-                createdAt: new Date()
-            };
-
-            await records.insertOne(record);
-            
-            // 获取更新后的统计数据
-            const summary = await updateSummary(decoded.userId);
-            
-            // 添加记录时的日志
-            console.log('添加记录:', record);
-            console.log('更新后的统计:', summary);
-
-            // 数据库操作的日志
-            console.log('MongoDB 连接状态:', db.serverConfig.isConnected());
-            
-            return res.status(200).json({ 
-                message: '记录添加成功',
-                record,
-                summary
-            });
 
         } else if (req.method === 'GET') {
             console.log('处理 GET 请求');
@@ -224,6 +232,9 @@ async function calculateSummary(records, userId) {
 
 // 添加记录时更新统计数据
 async function updateSummary(userId) {
+    const { db } = await connectToDatabase();
+    const records = db.collection(COLLECTION_NAME);
+
     const pipeline = [
         {
             $match: { userId: new ObjectId(userId) }
