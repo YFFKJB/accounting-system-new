@@ -178,7 +178,7 @@
             <div class="bg-white shadow-sm rounded-lg card-hover">
                 <div class="px-6 py-6 sm:p-8">
                     <h3 class="text-lg font-medium leading-6 text-gray-900 mb-6">最近记录</h3>
-                    <div id="recordsList" class="space-y-4">
+                    <div id="records-list" class="space-y-4">
                         <!-- 记录将通过 JavaScript 动态添加 -->
                     </div>
                 </div>
@@ -275,7 +275,7 @@
 
         // 添加加载状态显示
         function updateLoadingState() {
-            const recordsList = document.getElementById('recordsList');
+            const recordsList = document.getElementById('records-list');
             const loadingIndicator = document.getElementById('loadingIndicator');
             
             if (STATE.loading) {
@@ -305,18 +305,18 @@
                 const recordElement = document.createElement('div');
                 recordElement.className = 'bg-white p-4 rounded-lg shadow mb-4 flex justify-between items-center';
                 
-                const isIncome = record.type === 'income';
+                const isIncome = record.t === 'i';
                 const amountColor = isIncome ? 'text-green-600' : 'text-red-600';
                 const amountPrefix = isIncome ? '+' : '-';
                 
                 recordElement.innerHTML = `
                     <div>
-                        <div class="text-gray-600">${record.description || '无描述'}</div>
-                        <div class="text-sm text-gray-400">${new Date(record.createdAt).toLocaleString()}</div>
+                        <div class="text-gray-600">${record.d || '无描述'}</div>
+                        <div class="text-sm text-gray-400">${new Date(record.c).toLocaleString()}</div>
                     </div>
                     <div class="flex items-center">
                         <span class="text-lg font-semibold ${amountColor} mr-4">
-                            ${amountPrefix}￥${record.amount.toFixed(2)}
+                            ${amountPrefix}￥${record.a.toFixed(2)}
                         </span>
                         <button onclick="deleteRecord('${record._id}')" class="text-red-500 hover:text-red-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
