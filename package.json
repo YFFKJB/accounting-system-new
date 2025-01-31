@@ -1,7 +1,7 @@
 {
   "name": "accounting-system",
   "version": "1.0.0",
-  "description": "工作室记账系统",
+  "description": "工作室记账系统 - 实时数据更新版本",
   "main": "index.js",
   "dependencies": {
     "bcryptjs": "^2.4.3",

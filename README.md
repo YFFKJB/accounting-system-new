@@ -1,6 +1,41 @@
 # 工作室记账系统
 
-一个简单的工作室记账系统，支持多用户管理、收支记录和数据统计。
+## 版本 1.0.0 (2024-01-31)
+
+### 功能特性
+- 用户注册和登录
+- 记账功能（收入/支出）
+- 实时统计（总收入/总支出/结余）
+- 最近记录实时显示
+- 管理员功能
+
+### 技术栈
+- 前端：原生 JavaScript + TailwindCSS
+- 后端：Node.js + MongoDB
+- 部署：Vercel
+
+### API 接口
+- `/api/register` - 用户注册
+- `/api/login` - 用户登录
+- `/api/records` - 记录管理
+- `/api/admin/*` - 管理员功能
+
+### 数据库结构
+- 用户表 (users)
+- 记录表 (records)
+  - userId: ObjectId
+  - type: String (income/expense)
+  - amount: Number
+  - description: String
+  - createdAt: Date
+
+### 已知问题
+- 无
+
+### 更新日志
+- 2024-01-31: 实现实时数据更新
+- 2024-01-31: 修复记录显示问题
+- 2024-01-31: 优化数据库查询
 
 ## 功能特点
 
