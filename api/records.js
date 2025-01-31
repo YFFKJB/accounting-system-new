@@ -205,8 +205,8 @@ async function calculateSummary(records, userId) {
         },
         {
             $group: {
-                _id: '$type',
-                total: { $sum: '$amount' }
+                _id: '$t',  // 使用新的字段名 t
+                total: { $sum: '$a' }  // 使用新的字段名 a
             }
         }
     ];
@@ -219,9 +219,9 @@ async function calculateSummary(records, userId) {
     };
 
     results.forEach(result => {
-        if (result._id === 'income') {
+        if (result._id === 'i') {  // 检查新的类型标识
             summary.totalIncome = result.total;
-        } else if (result._id === 'expense') {
+        } else if (result._id === 'e') {
             summary.totalExpense = result.total;
         }
     });
