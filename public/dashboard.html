@@ -551,9 +551,9 @@
             // 保存当前选择
             const options = ['<option value="all">所有用户</option>'];
             
-            // 使用从服务器获取的用户列表
-            if (data.userList) {
-                data.userList.forEach(username => {
+            // 使用从 STATE 中获取的用户列表
+            if (STATE.userList) {
+                STATE.userList.forEach(username => {
                     options.push(`<option value="${username}">${username}</option>`);
                 });
             }
@@ -561,7 +561,7 @@
             userFilter.innerHTML = options.join('');
             
             // 如果当前选择的值仍然有效，则保持选择
-            if (currentValue && (currentValue === 'all' || data.userList.includes(currentValue))) {
+            if (currentValue && (currentValue === 'all' || STATE.userList.includes(currentValue))) {
                 userFilter.value = currentValue;
             }
         }
