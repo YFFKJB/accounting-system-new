@@ -529,11 +529,13 @@
                 // 更新本地状态
                 STATE.records = data.records;
                 STATE.summary = data.summary;
+                STATE.userStats = data.userStats;
                 STATE.lastUpdate = Date.now();
                 
                 // 立即更新界面
                 updateRecordsList(STATE.records);
                 updateSummary(STATE.summary);
+                updateUserStats(STATE.userStats);
 
             } catch (error) {
                 console.error('删除记录失败:', error);
