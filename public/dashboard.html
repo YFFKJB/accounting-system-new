@@ -3,9 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工作室记账系统</title>
+    <title>工作室记账系统 - 仪表盘</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        .hover-scale {
+            transition: transform 0.2s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.01);
+        }
+        /* 添加移动端优化样式 */
+        @media (max-width: 640px) {
+            .amount-input {
+                font-size: 1.75rem;
+                height: 3rem;
+            }
+            .nav-title {
+                font-size: 1.25rem;
+            }
+            .summary-amount {
+                font-size: 1.5rem;
+            }
+            .form-label {
+                font-size: 1rem;
+            }
+            .type-switch label {
+                padding: 0.5rem 1rem;
+            }
+        }
         .type-switch {
             display: flex;
             gap: 1rem;
@@ -46,15 +83,21 @@
 </head>
 <body class="bg-gray-50">
     <!-- 顶部导航 -->
-    <nav class="bg-white shadow-sm">
-        <div class="px-4 py-2 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-gray-600">欢迎，</span>
-                <span id="username" class="font-medium"></span>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="/admin.html" id="adminLink" class="hidden text-indigo-600">管理</a>
-                <button onclick="logout()" class="text-red-500">退出</button>
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="nav-title font-bold text-gray-900">工作室记账系统</h1>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <span class="text-gray-600 text-sm sm:text-base">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
+                    <a href="/admin.html" id="adminLink" class="hidden inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                        用户管理
+                    </a>
+                    <button onclick="logout()" class="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600">
+                        退出登录
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
