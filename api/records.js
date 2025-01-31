@@ -140,11 +140,11 @@ module.exports = async (req, res) => {
                 ? { username: userFilter }
                 : {};
 
-            // 获取记录
+            // 获取指定用户的最新6条记录
             const recentRecords = await records
-                .find(query)
-                .sort({ c: -1 })
-                .limit(6)
+                .find(query)  // 先筛选用户
+                .sort({ c: -1 })  // 按时间倒序
+                .limit(6)  // 只取6条
                 .toArray();
 
             // 获取所有记录用于统计

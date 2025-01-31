@@ -147,9 +147,9 @@
         </div>
 
         <!-- 修改主要内容布局 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <!-- 添加记录表单 -->
-            <div class="bg-white shadow-sm rounded-lg card-hover">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+            <!-- 添加记录表单 (占1份) -->
+            <div class="lg:col-span-2 bg-white shadow-sm rounded-lg card-hover">
                 <div class="p-4 sm:p-6">
                     <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4 sm:mb-6">添加记录</h3>
                     <form id="recordForm" class="space-y-4 sm:space-y-6">
@@ -190,8 +190,8 @@
                 </div>
             </div>
 
-            <!-- 记录列表 -->
-            <div class="bg-white shadow-sm rounded-lg card-hover">
+            <!-- 记录列表 (占3份) -->
+            <div class="lg:col-span-3 bg-white shadow-sm rounded-lg card-hover">
                 <div class="p-4 sm:p-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 mb-2 sm:mb-0">最近记录</h3>
@@ -298,40 +298,39 @@
             users: new Set()
         };
 
-        // 优化加载记录函数
-        async function loadRecords(forceUpdate = false) {
-            // 如果数据已经加载且未超过30秒，直接使用缓存
-            const now = Date.now();
-            if (!forceUpdate && STATE.lastUpdate && (now - STATE.lastUpdate < 30000)) {
-                updateRecordsList(STATE.records);
-                updateSummary(STATE.summary);
-                updateUserStats(STATE.userStats);
-                return;
-            }
+        // 修改加载记录函数
+        async function loadRecords() {
+            if (STATE.loading) return;
+            STATE.loading = true;
+            updateLoadingState();
 
             try {
-                // 显示加载状态
-                STATE.loading = true;
-                updateLoadingState();
+                const selectedUser = document.getElementById('userFilter').value;
+                const url = selectedUser === 'all' 
+                    ? '/api/records'
+                    : `/api/records?user=${encodeURIComponent(selectedUser)}`;
 
-                const response = await fetch('/api/records', {
+                const response = await fetch(url, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error('加载记录失败');
+                }
+
                 const data = await response.json();
                 
-                // 更新缓存
+                // 更新状态
                 STATE.records = data.records;
                 STATE.summary = data.summary;
                 STATE.userStats = data.userStats;
-                STATE.lastUpdate = now;
-                
-                // 更新用户列表
+                STATE.lastUpdate = Date.now();
                 STATE.users = new Set(data.records.map(record => record.username));
-                updateUserFilter();
                 
                 // 更新界面
+                updateUserFilter();
                 updateRecordsList(data.records);
                 updateSummary(data.summary);
                 updateUserStats(data.userStats);
@@ -370,18 +369,11 @@
 
         function updateRecordsList(records) {
             if (!records) return;
-            const selectedUser = document.getElementById('userFilter').value;
-            const filteredRecords = selectedUser === 'all' 
-                ? records 
-                : records.filter(record => record.username === selectedUser);
-            
-            // 获取最新的6条记录
-            const limitedRecords = filteredRecords.slice(0, 6);
             const currentUsername = localStorage.getItem('username');
             const isAdmin = document.getElementById('adminLink').style.display !== 'none';
             
             const recordsList = document.getElementById('recordsList');
-            recordsList.innerHTML = limitedRecords.map(record => `
+            recordsList.innerHTML = records.map(record => `
                 <tr>
                     <td class="px-6 py-4 border-b border-gray-500">
                         <span class="table-cell text-sm font-medium text-gray-900">${record.username}</span>
