@@ -38,6 +38,12 @@ if not exist .git (
 :: 切换到 main 分支
 %GIT% checkout main 2>nul || %GIT% checkout -b main
 
+:: 确保 .gitignore 文件存在并包含 bat 文件
+echo update-github.bat>> .gitignore
+echo update-from-github.bat>> .gitignore
+sort .gitignore /unique > .gitignore.tmp
+move /y .gitignore.tmp .gitignore >nul
+
 :: 显示当前状态
 echo 当前修改的文件:
 %GIT% status --short

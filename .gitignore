@@ -1,3 +1,4 @@
 .env
+.vercel update-github.bat
 node_modules/
-.vercel 
+update-from-github.bat
