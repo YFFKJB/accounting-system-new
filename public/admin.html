@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工作室记账系统 - 用户管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
@@ -311,7 +312,7 @@
                 <div class="relative top-20 mx-auto p-5 border w-4/5 shadow-lg rounded-md bg-white">
                     <div class="flex justify-between items-center pb-3">
                         <h3 class="text-lg font-medium">封存记录详情</h3>
-                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-500">
+                        <button class="close-modal text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100">
                             <i class="ri-close-line text-2xl"></i>
                         </button>
                     </div>
@@ -349,6 +350,24 @@
                 </div>
             `;
             document.body.appendChild(modal);
+            
+            // 添加点击事件监听器
+            modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+            
+            // 点击背景关闭弹窗
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            // ESC 键关闭弹窗
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                }
+            });
+
             modal.querySelector('button').focus();
         }
 
