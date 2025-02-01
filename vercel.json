@@ -41,6 +41,16 @@
       "methods": ["DELETE"]
     },
     {
+      "src": "/api/admin/archive",
+      "dest": "/api/admin/archive.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/admin/archives",
+      "dest": "/api/admin/archives.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
