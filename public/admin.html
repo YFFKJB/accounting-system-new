@@ -204,7 +204,7 @@
                 const archivesList = document.getElementById('archivesList');
                 archivesList.innerHTML = '';
 
-                data.archives.forEach(archive => {
+                data.archives.forEach((archive, index) => {
                     const startDate = new Date(archive.startDate).toLocaleDateString();
                     const endDate = new Date(archive.endDate).toLocaleDateString();
                     const createdAt = new Date(archive.createdAt).toLocaleString();
@@ -230,10 +230,18 @@
                             ${createdAt}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button onclick='showArchiveDetails(${JSON.stringify(archive)})' 
-                                    class="text-indigo-600 hover:text-indigo-900">
-                                查看详情
-                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick='showArchiveDetails(${JSON.stringify(archive)})' 
+                                        class="text-indigo-600 hover:text-indigo-900">
+                                    查看详情
+                                </button>
+                                ${index === 0 ? `
+                                <button onclick="unarchiveRecords()" 
+                                        class="text-yellow-600 hover:text-yellow-900 ml-2">
+                                    解除封存
+                                </button>
+                                ` : ''}
+                            </div>
                         </td>
                     `;
                     archivesList.appendChild(row);
@@ -369,6 +377,38 @@
             });
 
             modal.querySelector('button').focus();
+        }
+
+        // 添加解除封存的函数
+        async function unarchiveRecords() {
+            if (!confirm('确定要解除最近一次的封存记录吗？这将恢复所有被封存的记录到当前账期。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/unarchive', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || '解除封存失败');
+                }
+
+                const data = await response.json();
+                alert('解除封存成功！');
+                
+                // 重新加载封存记录和用户列表
+                loadArchives();
+                loadUsers();
+
+            } catch (error) {
+                console.error('解除封存失败:', error);
+                showError(error.message);
+            }
         }
 
         // 页面加载时执行

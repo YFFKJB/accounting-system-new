@@ -1,5 +1,9 @@
+*.log
+.DS_Store
 .env
-.vercel update-github.bat
+.vercel
++.idea/
++.vscode/
 node_modules/
 update-from-github.bat
 update-github.bat

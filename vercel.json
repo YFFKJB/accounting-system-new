@@ -51,6 +51,11 @@
       "methods": ["GET", "OPTIONS"]
     },
     {
+      "src": "/api/admin/unarchive",
+      "dest": "/api/admin/unarchive.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
