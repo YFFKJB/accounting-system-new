@@ -2,3 +2,4 @@
 .vercel update-github.bat
 node_modules/
 update-from-github.bat
+update-github.bat
