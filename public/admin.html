@@ -6,6 +6,7 @@
     <title>工作室记账系统 - 用户管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
@@ -45,6 +46,43 @@
 
         <!-- 主要内容 -->
         <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- 图表区域 -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-medium text-gray-900">数据统计</h2>
+                        <div class="flex space-x-4">
+                            <button onclick="updateCharts('week')" 
+                                    class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100">
+                                最近一周
+                            </button>
+                            <button onclick="updateCharts('month')" 
+                                    class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100">
+                                最近一月
+                            </button>
+                            <button onclick="updateCharts('all')" 
+                                    class="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100">
+                                全部
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- 收支饼图 -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                        <!-- 收支趋势图 -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                        <!-- 用户贡献图 -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 封存记录列表 -->
             <div class="bg-white rounded-lg shadow mb-6">
                 <div class="px-4 py-5 sm:p-6">
@@ -538,10 +576,151 @@
             setTimeout(() => successDiv.remove(), 3000);
         }
 
-        // 页面加载时执行
-        checkAuth();
-        loadUsers();
-        loadArchives();
+        // 声明图表实例变量
+        let pieChart, lineChart, barChart;
+
+        // 初始化图表
+        function initCharts() {
+            // 初始化饼图
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['收入', '支出'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#10B981', '#EF4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '收支比例'
+                        }
+                    }
+                }
+            });
+
+            // 初始化折线图
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '收入',
+                            data: [],
+                            borderColor: '#10B981',
+                            tension: 0.1
+                        },
+                        {
+                            label: '支出',
+                            data: [],
+                            borderColor: '#EF4444',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '收支趋势'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 初始化柱状图
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '收入',
+                            data: [],
+                            backgroundColor: '#10B981'
+                        },
+                        {
+                            label: '支出',
+                            data: [],
+                            backgroundColor: '#EF4444'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '用户贡献'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新图表数据
+        async function updateCharts(period = 'all') {
+            try {
+                const response = await fetch('/api/admin/statistics?period=' + period, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取统计数据失败');
+                }
+
+                const data = await response.json();
+                
+                // 更新饼图
+                pieChart.data.datasets[0].data = [data.totalIncome, data.totalExpense];
+                pieChart.update();
+
+                // 更新折线图
+                lineChart.data.labels = data.trend.map(t => t.date);
+                lineChart.data.datasets[0].data = data.trend.map(t => t.income);
+                lineChart.data.datasets[1].data = data.trend.map(t => t.expense);
+                lineChart.update();
+
+                // 更新柱状图
+                barChart.data.labels = data.userContribution.map(u => u.username);
+                barChart.data.datasets[0].data = data.userContribution.map(u => u.income);
+                barChart.data.datasets[1].data = data.userContribution.map(u => u.expense);
+                barChart.update();
+
+            } catch (error) {
+                console.error('更新图表失败:', error);
+                showError('更新图表失败');
+            }
+        }
+
+        // 在页面加载时初始化图表
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadUsers();
+            loadArchives();
+            initCharts();
+            updateCharts();
+        });
     </script>
 </body>
 </html> 

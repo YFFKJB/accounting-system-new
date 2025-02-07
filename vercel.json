@@ -66,6 +66,11 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
+      "src": "/api/admin/statistics",
+      "dest": "/api/admin/statistics.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
