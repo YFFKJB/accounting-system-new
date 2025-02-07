@@ -47,6 +47,8 @@
   - `/api/admin/unarchive` - 解除最近封存
   - `/api/admin/users` - 用户管理
   - `/api/admin/check` - 权限验证
+  - `/api/admin/export` - 导出系统数据
+  - `/api/admin/import` - 导入系统数据
 
 ### 数据库结构
 - 用户表 (users)
