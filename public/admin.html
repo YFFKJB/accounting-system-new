@@ -429,13 +429,20 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('导出失败');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || errorData.error || '导出失败');
                 }
 
                 const data = await response.json();
                 
+                // 添加文件大小检查
+                const jsonString = JSON.stringify(data, null, 2);
+                if (jsonString.length > 10 * 1024 * 1024) { // 10MB
+                    throw new Error('导出数据过大，请联系管理员');
+                }
+                
                 // 创建下载文件
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
