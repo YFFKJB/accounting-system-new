@@ -71,11 +71,6 @@
       "methods": ["GET", "OPTIONS"]
     },
     {
-      "src": "/api/statistics",
-      "dest": "/api/statistics.js",
-      "methods": ["GET", "OPTIONS"]
-    },
-    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
