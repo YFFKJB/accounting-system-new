@@ -419,22 +419,24 @@
             }
         }
 
-        // 导出数据
+        // 修改导出数据函数
         async function exportData() {
             try {
                 showLoading('正在导出数据...');
                 
                 const response = await fetch('/api/admin/export', {
+                    method: 'GET',  // 确保使用 GET 方法
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Accept': 'application/json'  // 添加 Accept 头
                     }
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || '导出失败');
+                    throw new Error('导出失败');
                 }
 
+                // 获取响应数据
                 const data = await response.json();
                 
                 // 转换为 Blob
@@ -448,6 +450,8 @@
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `pilotseye_backup_${new Date().toISOString().split('T')[0]}.json`;
+                
+                // 添加到文档并触发点击
                 document.body.appendChild(a);
                 a.click();
                 
@@ -460,7 +464,7 @@
             } catch (error) {
                 console.error('导出失败:', error);
                 hideLoading();
-                showError(error.message || '导出失败，请重试');
+                showError('导出失败，请重试');
             }
         }
 
