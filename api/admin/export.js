@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
 
         // 获取所有数据
         const records = await db.collection('records').find({}).toArray();
-        const users = await db.collection('users').find({}, { projection: { password: 0 } }).toArray(); // 排除密码字段
+        const users = await db.collection('users').find({}, { projection: { password: 0 } }).toArray();
         const archives = await db.collection('archives').find({}).toArray();
 
         // 导出数据
@@ -46,19 +46,16 @@ module.exports = async (req, res) => {
             }
         };
 
-        res.status(200).json(exportData);
+        return res.status(200).json(exportData);
     } catch (error) {
         console.error('导出失败:', error);
-        // 提供更详细的错误信息
-        res.status(500).json({ 
-            error: '导出失败', 
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        return res.status(500).json({ 
+            error: '导出失败',
+            message: error.message 
         });
     } finally {
-        // 确保关闭数据库连接
         if (client) {
-            await client.close();
+            await client.close().catch(console.error);
         }
     }
 };

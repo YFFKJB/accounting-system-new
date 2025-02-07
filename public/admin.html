@@ -422,6 +422,9 @@
         // 导出数据
         async function exportData() {
             try {
+                // 显示加载提示
+                showLoading('正在导出数据...');
+                
                 const response = await fetch('/api/admin/export', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -433,7 +436,17 @@
                     throw new Error(errorData.message || errorData.error || '导出失败');
                 }
 
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('服务器返回格式错误');
+                }
+
                 const data = await response.json();
+                
+                // 验证数据结构
+                if (!data.metadata || !data.data) {
+                    throw new Error('导出数据格式错误');
+                }
                 
                 // 添加文件大小检查
                 const jsonString = JSON.stringify(data, null, 2);
@@ -442,7 +455,9 @@
                 }
                 
                 // 创建下载文件
-                const blob = new Blob([jsonString], { type: 'application/json' });
+                const blob = new Blob([jsonString], { 
+                    type: 'application/json;charset=utf-8'
+                });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -452,10 +467,28 @@
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
 
+                hideLoading();
                 showSuccess('数据导出成功');
             } catch (error) {
+                hideLoading();
                 console.error('导出失败:', error);
                 showError('导出失败: ' + error.message);
+            }
+        }
+
+        // 添加加载提示函数
+        function showLoading(message) {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.className = 'fixed top-4 right-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded';
+            loadingDiv.innerHTML = message;
+            document.body.appendChild(loadingDiv);
+        }
+
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) {
+                loadingDiv.remove();
             }
         }
 
