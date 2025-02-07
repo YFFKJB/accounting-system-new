@@ -126,11 +126,14 @@
                     <h1 class="nav-title font-bold text-gray-900">PilotsEYE工作室记账系统</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
-                    <a href="/admin.html" id="adminLink" class="hidden inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                    <a href="/statistics.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="ri-bar-chart-2-line mr-1"></i>统计
+                    </a>
+                    <a href="/admin.html" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium" id="adminLink" style="display: none;">
                         用户管理
                     </a>
-                    <button onclick="logout()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600">
+                    <span class="text-gray-600">欢迎，<span id="username" class="text-gray-900 font-medium"></span></span>
+                    <button onclick="logout()" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
                         退出登录
                     </button>
                 </div>
