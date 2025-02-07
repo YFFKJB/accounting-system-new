@@ -56,6 +56,16 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
+      "src": "/api/admin/export",
+      "dest": "/api/admin/export.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/admin/import",
+      "dest": "/api/admin/import.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
