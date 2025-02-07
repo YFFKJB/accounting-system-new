@@ -71,7 +71,7 @@ module.exports = async (req, res) => {
             }
         };
 
-        return res.status(200).json(exportData);
+        res.status(200).json(exportData);
     } catch (error) {
         console.error('导出失败:', error);
         return res.status(500).json({ 
