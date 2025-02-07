@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@heroicons/react@2.0.18/outline/dist/index.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @keyframes slideIn {
             from { transform: translateY(-10px); opacity: 0; }
@@ -151,6 +152,46 @@
             <div class="bg-white overflow-hidden shadow-sm rounded-lg card-hover p-4 sm:p-6">
                 <dt class="text-sm font-medium text-gray-500 truncate">结余</dt>
                 <dd class="mt-2 text-2xl sm:text-3xl font-semibold text-blue-600" id="balance">¥0.00</dd>
+            </div>
+        </div>
+
+        <!-- 图表区域容器样式优化 -->
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-base font-semibold leading-7 text-gray-900">数据统计</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateCharts('week')" 
+                                class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                data-period="week">
+                            最近一周
+                        </button>
+                        <button onclick="updateCharts('month')"
+                                class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                data-period="month">
+                            最近一月
+                        </button>
+                        <button onclick="updateCharts('all')"
+                                class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                data-period="all">
+                            全部
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 收支饼图 -->
+                    <div class="bg-gray-50/50 rounded-xl p-4 ring-1 ring-gray-900/5 transition-all hover:shadow-md">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                    <!-- 收支趋势图 -->
+                    <div class="bg-gray-50/50 rounded-xl p-4 ring-1 ring-gray-900/5 transition-all hover:shadow-md">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                    <!-- 月度统计图 -->
+                    <div class="bg-gray-50/50 rounded-xl p-4 ring-1 ring-gray-900/5 transition-all hover:shadow-md">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -640,6 +681,307 @@
         document.getElementById('userFilter').addEventListener('change', () => {
             // 重新加载记录以获取所选用户的最新6条记录
             loadRecords();
+        });
+
+        // 声明图表实例变量
+        let pieChart, lineChart, barChart;
+
+        // 图表配色方案
+        const chartColors = {
+            primary: {
+                income: {
+                    base: 'rgb(16, 185, 129)',
+                    light: 'rgba(16, 185, 129, 0.2)',
+                    hover: 'rgba(16, 185, 129, 0.8)'
+                },
+                expense: {
+                    base: 'rgb(239, 68, 68)',
+                    light: 'rgba(239, 68, 68, 0.2)',
+                    hover: 'rgba(239, 68, 68, 0.8)'
+                }
+            },
+            grid: 'rgba(148, 163, 184, 0.1)',
+            text: 'rgb(51, 65, 85)'
+        };
+
+        // 通用图表配置
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 750,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            family: 'system-ui',
+                            size: 12,
+                            weight: '500'
+                        },
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                title: {
+                    display: true,
+                    font: {
+                        family: 'system-ui',
+                        size: 14,
+                        weight: '600'
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: chartColors.text,
+                    bodyColor: chartColors.text,
+                    bodyFont: {
+                        size: 13
+                    },
+                    borderColor: 'rgba(148, 163, 184, 0.2)',
+                    borderWidth: 1,
+                    padding: 10,
+                    boxPadding: 5,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.dataset.label}: ¥${context.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        };
+
+        // 初始化图表
+        function initCharts() {
+            // 饼图配置
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['收入', '支出'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: [
+                            chartColors.primary.income.base,
+                            chartColors.primary.expense.base
+                        ],
+                        hoverBackgroundColor: [
+                            chartColors.primary.income.hover,
+                            chartColors.primary.expense.hover
+                        ],
+                        borderWidth: 2,
+                        borderColor: 'white'
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '65%',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            ...commonOptions.plugins.title,
+                            text: '收支比例'
+                        }
+                    }
+                }
+            });
+
+            // 折线图配置
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '收入',
+                            data: [],
+                            borderColor: chartColors.primary.income.base,
+                            backgroundColor: chartColors.primary.income.light,
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: '支出',
+                            data: [],
+                            borderColor: chartColors.primary.expense.base,
+                            backgroundColor: chartColors.primary.expense.light,
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: chartColors.grid
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '¥' + value;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            ...commonOptions.plugins.title,
+                            text: '收支趋势'
+                        }
+                    }
+                }
+            });
+
+            // 柱状图配置
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '收入',
+                            data: [],
+                            backgroundColor: chartColors.primary.income.base,
+                            hoverBackgroundColor: chartColors.primary.income.hover,
+                            borderRadius: 4,
+                            maxBarThickness: 20
+                        },
+                        {
+                            label: '支出',
+                            data: [],
+                            backgroundColor: chartColors.primary.expense.base,
+                            hoverBackgroundColor: chartColors.primary.expense.hover,
+                            borderRadius: 4,
+                            maxBarThickness: 20
+                        }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: chartColors.grid
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '¥' + value;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            ...commonOptions.plugins.title,
+                            text: '月度统计'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新时间范围按钮状态
+        function updatePeriodButtons(activePeriod) {
+            document.querySelectorAll('[data-period]').forEach(button => {
+                if (button.dataset.period === activePeriod) {
+                    button.classList.add('bg-gray-100', 'text-gray-900', 'ring-gray-300');
+                    button.classList.remove('text-gray-600', 'ring-gray-200');
+                } else {
+                    button.classList.remove('bg-gray-100', 'text-gray-900', 'ring-gray-300');
+                    button.classList.add('text-gray-600', 'ring-gray-200');
+                }
+            });
+        }
+
+        // 更新图表数据
+        async function updateCharts(period = 'all') {
+            updatePeriodButtons(period);
+            try {
+                const response = await fetch('/api/statistics?period=' + period, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取统计数据失败');
+                }
+
+                const data = await response.json();
+                
+                // 更新饼图
+                pieChart.data.datasets[0].data = [data.totalIncome, data.totalExpense];
+                pieChart.update('show');
+
+                // 更新折线图
+                lineChart.data.labels = data.trend.map(t => t.date);
+                lineChart.data.datasets[0].data = data.trend.map(t => t.income);
+                lineChart.data.datasets[1].data = data.trend.map(t => t.expense);
+                lineChart.update('show');
+
+                // 更新柱状图
+                barChart.data.labels = data.monthlyData.map(m => m.month);
+                barChart.data.datasets[0].data = data.monthlyData.map(m => m.income);
+                barChart.data.datasets[1].data = data.monthlyData.map(m => m.expense);
+                barChart.update('show');
+
+            } catch (error) {
+                console.error('更新图表失败:', error);
+                showError('更新图表失败');
+            }
+        }
+
+        // 在页面加载时初始化图表
+        document.addEventListener('DOMContentLoaded', () => {
+            // ... 原有的初始化代码 ...
+            initCharts();
+            updateCharts();
         });
     </script>
 </body>
