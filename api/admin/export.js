@@ -26,10 +26,35 @@ module.exports = async (req, res) => {
             return res.status(403).json({ error: '需要管理员权限' });
         }
 
-        // 获取所有数据
-        const records = await db.collection('records').find({}).toArray();
-        const users = await db.collection('users').find({}, { projection: { password: 0 } }).toArray();
-        const archives = await db.collection('archives').find({}).toArray();
+        // 分批获取数据
+        const records = await db.collection('records')
+            .find({})
+            .project({ password: 0 }) // 排除敏感信息
+            .limit(1000) // 限制记录数
+            .toArray();
+
+        const users = await db.collection('users')
+            .find({})
+            .project({ password: 0 }) // 排除密码字段
+            .toArray();
+
+        const archives = await db.collection('archives')
+            .find({})
+            .limit(100) // 限制归档记录数
+            .toArray();
+
+        // 处理数据，移除敏感信息和MongoDB特定字段
+        const sanitizeData = (data) => {
+            return JSON.parse(JSON.stringify(data, (key, value) => {
+                if (key === '_id') {
+                    return value.toString();
+                }
+                if (key === 'userId') {
+                    return value.toString();
+                }
+                return value;
+            }));
+        };
 
         // 导出数据
         const exportData = {
@@ -40,9 +65,9 @@ module.exports = async (req, res) => {
                 systemName: 'PilotsEYE工作室记账系统'
             },
             data: {
-                records,
-                users,
-                archives
+                records: sanitizeData(records),
+                users: sanitizeData(users),
+                archives: sanitizeData(archives)
             }
         };
 
