@@ -3,8 +3,25 @@ const jwt = require('jsonwebtoken');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
+const DB_NAME = 'accounting';
 
 module.exports = async (req, res) => {
+    // 设置 CORS 头部
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // 处理 OPTIONS 请求
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    // 只允许 GET 请求
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: '方法不允许' });
+    }
+
     let client;
     try {
         // 验证管理员权限
@@ -18,48 +35,41 @@ module.exports = async (req, res) => {
 
         client = new MongoClient(MONGODB_URI);
         await client.connect();
-        const db = client.db('accounting');
+        const db = client.db(DB_NAME);
 
         // 验证是否是管理员
-        const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+        const user = await db.collection('users').findOne({
+            _id: new ObjectId(decoded.userId)
+        });
+
         if (!user || !user.isAdmin) {
             return res.status(403).json({ error: '需要管理员权限' });
         }
 
-        // 分批获取数据
-        const records = await db.collection('records')
-            .find({})
-            .project({ password: 0 }) // 排除敏感信息
-            .limit(1000) // 限制记录数
-            .toArray();
+        // 获取所有数据
+        const [records, users, archives] = await Promise.all([
+            db.collection('records').find({}).toArray(),
+            db.collection('users').find({}, { projection: { password: 0 } }).toArray(),
+            db.collection('archives').find({}).toArray()
+        ]);
 
-        const users = await db.collection('users')
-            .find({})
-            .project({ password: 0 }) // 排除密码字段
-            .toArray();
-
-        const archives = await db.collection('archives')
-            .find({})
-            .limit(100) // 限制归档记录数
-            .toArray();
-
-        // 处理数据，移除敏感信息和MongoDB特定字段
+        // 处理数据，转换 ObjectId
         const sanitizeData = (data) => {
             return JSON.parse(JSON.stringify(data, (key, value) => {
-                if (key === '_id') {
+                if (value instanceof ObjectId) {
                     return value.toString();
                 }
-                if (key === 'userId') {
-                    return value.toString();
+                if (key === 'password') {
+                    return undefined; // 排除密码字段
                 }
                 return value;
             }));
         };
 
-        // 导出数据
+        // 构建导出数据
         const exportData = {
             metadata: {
-                version: '1.0',
+                version: '1.4.0',
                 exportDate: new Date().toISOString(),
                 exportedBy: user.username,
                 systemName: 'PilotsEYE工作室记账系统'
@@ -68,19 +78,27 @@ module.exports = async (req, res) => {
                 records: sanitizeData(records),
                 users: sanitizeData(users),
                 archives: sanitizeData(archives)
+            },
+            summary: {
+                recordCount: records.length,
+                userCount: users.length,
+                archiveCount: archives.length,
+                totalIncome: records.filter(r => r.t === 'i').reduce((sum, r) => sum + r.a, 0),
+                totalExpense: records.filter(r => r.t === 'e').reduce((sum, r) => sum + r.a, 0)
             }
         };
 
-        res.status(200).json(exportData);
+        return res.status(200).json(exportData);
+
     } catch (error) {
-        console.error('导出失败:', error);
-        return res.status(500).json({ 
+        console.error('导出数据失败:', error);
+        return res.status(500).json({
             error: '导出失败',
-            message: error.message 
+            message: process.env.NODE_ENV === 'development' ? error.message : '服务器内部错误'
         });
     } finally {
         if (client) {
-            await client.close().catch(console.error);
+            await client.close();
         }
     }
 };
