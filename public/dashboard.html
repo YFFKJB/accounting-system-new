@@ -145,6 +145,12 @@
             background: white;
             z-index: 10;
         }
+        .description-cell {
+            max-width: 160px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -186,7 +192,7 @@
         </div>
 
         <!-- 修改主要内容布局 -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             <!-- 添加记录表单 (占1份) -->
             <div class="lg:col-span-2 bg-white shadow-sm rounded-lg card-hover">
                 <div class="p-4 sm:p-6">
@@ -230,7 +236,7 @@
             </div>
 
             <!-- 记录列表 (占3份) -->
-            <div class="lg:col-span-3 bg-white shadow-sm rounded-lg card-hover">
+            <div class="lg:col-span-4 bg-white shadow-sm rounded-lg card-hover">
                 <div class="p-4 sm:p-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 mb-2 sm:mb-0">最近记录</h3>
@@ -238,18 +244,18 @@
                             <option value="all">所有用户</option>
                         </select>
                     </div>
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
-                        <div class="inline-block min-w-full align-middle">
+                    <div class="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
+                        <div class="inline-block min-w-full py-2 align-middle px-4 sm:px-6 lg:px-8">
                             <div class="max-h-[400px] overflow-y-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-white sticky top-0 z-10">
                                         <tr>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">创建者</th>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">类型</th>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">金额</th>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">描述</th>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">时间</th>
-                                            <th class="px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">操作</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-24">创建者</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-20">类型</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-24">金额</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-40">描述</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-32">时间</th>
+                                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider bg-white w-20">操作</th>
                                         </tr>
                                     </thead>
                                     <tbody id="recordsList" class="divide-y divide-gray-200">
@@ -416,34 +422,32 @@
             const recordsList = document.getElementById('recordsList');
             recordsList.innerHTML = records.map(record => `
                 <tr data-record-id="${record._id}" data-username="${record.username}">
-                    <td class="px-6 py-4 border-b border-gray-500">
-                        <span class="table-cell text-sm font-medium text-gray-900">${record.username}</span>
-                    </td>
-                    <td class="px-6 py-4 border-b border-gray-500">
-                        <span class="table-cell px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            record.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }">
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">${record.username}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm">
+                        <span class="${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
                             ${record.type === 'income' ? '收入' : '支出'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 border-b border-gray-500">
-                        <span class="table-cell text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
-                            ${record.type === 'income' ? '+' : '-'}${record.amount}
-                        </span>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                        ${record.type === 'income' ? '+' : '-'}${record.amount.toFixed(2)}
                     </td>
-                    <td class="px-6 py-4 border-b border-gray-500">
-                        <span class="table-cell text-sm text-gray-900">${record.description}</span>
+                    <td class="px-3 py-4 text-sm text-gray-900">
+                        <div class="description-cell" title="${record.description}">
+                            ${record.description.length > 9 ? record.description.substring(0, 9) + '...' : record.description}
+                        </div>
                     </td>
-                    <td class="px-6 py-4 border-b border-gray-500">
-                        <span class="table-cell text-sm text-gray-900">${new Date(record.createdAt).toLocaleString()}</span>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${new Date(record.createdAt).toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
                     </td>
-                    <td class="px-6 py-4 border-b border-gray-500 text-right">
+                    <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
                         ${(isAdmin || record.username === currentUsername) ? `
-                            <i class="ri-delete-bin-5-line delete-icon text-lg" 
-                               onclick="deleteRecord('${record._id}')" 
-                               title="${isAdmin ? '删除记录' : (record.username === currentUsername ? '删除记录' : '无权限删除')}"
-                               style="${(!isAdmin && record.username !== currentUsername) ? 'opacity: 0.5; cursor: not-allowed;' : ''}"></i>
-                        ` : ''}
+                            <i class="ri-delete-bin-line delete-icon" onclick="deleteRecord('${record._id}')"></i>` : ''}
                     </td>
                 </tr>
             `).join('');
