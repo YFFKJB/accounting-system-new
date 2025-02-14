@@ -114,6 +114,37 @@
         .fade-out {
             animation: fade-out 0.3s ease-out forwards;
         }
+        .max-h-60 {
+            max-height: 15rem; /* 根据需要调整高度 */
+        }
+        .overflow-y-auto {
+            overflow-y: auto; /* 允许垂直滚动 */
+        }
+        /* 自定义滚动条样式 */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        /* 确保表头始终显示 */
+        .sticky {
+            position: sticky;
+            background: white;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -209,21 +240,23 @@
                     </div>
                     <div class="overflow-x-auto -mx-4 sm:mx-0">
                         <div class="inline-block min-w-full align-middle">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">创建者</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">类型</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">金额</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">描述</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">时间</th>
-                                        <th class="px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recordsList" class="divide-y divide-gray-200">
-                                    <!-- 记录将通过 JavaScript 动态插入 -->
-                                </tbody>
-                            </table>
+                            <div class="max-h-[400px] overflow-y-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-white sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">创建者</th>
+                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">类型</th>
+                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">金额</th>
+                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">描述</th>
+                                            <th class="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">时间</th>
+                                            <th class="px-3 sm:px-6 py-3 text-right text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider bg-white">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recordsList" class="divide-y divide-gray-200">
+                                        <!-- 记录将通过 JavaScript 动态插入 -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
