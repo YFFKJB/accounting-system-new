@@ -6,7 +6,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.0",
-    "mongodb": "^5.0.0",
+    "mongodb": "^6.12.0",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "winston": "^3.11.0",
@@ -28,6 +28,6 @@
   "author": "YFFKJB",
   "license": "MIT",
   "engines": {
-    "node": "^18.0.0"
+    "node": ">=18.0.0"
   }
 }
