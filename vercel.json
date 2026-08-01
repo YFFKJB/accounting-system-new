@@ -6,6 +6,11 @@
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/public/index.html",
+      "methods": ["GET"]
+    },
+    {
       "src": "/api/register",
       "dest": "/api/register.js",
       "methods": ["POST", "OPTIONS"]
