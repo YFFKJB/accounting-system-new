@@ -7,19 +7,23 @@
     <script src="/vendor/tailwind.js"></script>
     <link href="/vendor/remixicon/fonts/remixicon.css" rel="stylesheet">
     <script src="/vendor/chart.js"></script>
+    <style>
+        .chart-box { position: relative; height: 260px; }
+        @media (min-width: 640px) { .chart-box { height: 340px; } }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div class="min-h-screen">
         <!-- 导航栏 -->
         <nav class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
+                <div class="flex flex-wrap items-center justify-between gap-2 py-2 sm:py-0 sm:h-16">
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
                             <h1 class="text-xl font-bold">PilotsEYE工作室记账系统</h1>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto">
                         <button onclick="exportData()" 
                                 class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 min-w-[120px]">
                             <i class="ri-download-line mr-2"></i>导出数据
@@ -45,11 +49,11 @@
         </nav>
 
         <!-- 主要内容 -->
-        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
             <!-- 图表区域 -->
             <div class="bg-white rounded-lg shadow mb-6">
-                <div class="px-6 py-5">
-                    <div class="flex items-center justify-between mb-8">
+                <div class="px-4 py-4 sm:px-6 sm:py-5">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 sm:mb-8">
                         <h2 class="text-xl font-semibold text-gray-900">数据统计</h2>
                         <div class="inline-flex rounded-lg shadow-sm">
                             <button onclick="updateCharts('week')" 
@@ -117,7 +121,7 @@
                         <!-- 收支饼图 -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h3 class="text-sm font-medium text-gray-500 mb-4">收支比例</h3>
-                            <div class="aspect-w-16 aspect-h-9">
+                            <div class="chart-box">
                                 <canvas id="pieChart"></canvas>
                             </div>
                         </div>
@@ -125,7 +129,7 @@
                         <!-- 收支趋势图 -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
                             <h3 class="text-sm font-medium text-gray-500 mb-4">收支趋势</h3>
-                            <div class="aspect-w-16 aspect-h-7">
+                            <div class="chart-box">
                                 <canvas id="lineChart"></canvas>
                             </div>
                         </div>
@@ -133,7 +137,7 @@
                         <!-- 用户贡献图 -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-3">
                             <h3 class="text-sm font-medium text-gray-500 mb-4">用户贡献</h3>
-                            <div class="aspect-w-16 aspect-h-7">
+                            <div class="chart-box">
                                 <canvas id="barChart"></canvas>
                             </div>
                         </div>
