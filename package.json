@@ -23,7 +23,8 @@
     "check-env": "node scripts/check-env.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "jest"
+    "test": "jest",
+    "deploy:cf": "npx wrangler pages deploy public"
   },
   "author": "YFFKJB",
   "license": "MIT",

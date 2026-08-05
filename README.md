@@ -359,3 +359,39 @@
 ### 生产环境配置
 
 在 Vercel 部署时，请在 Vercel 项目设置的环境变量页面配置上述变量。
+
+## 国内网络访问方案（免费，无需 VPN）
+
+### 问题原因
+
+- 前端页面和后端 API 都部署在 Vercel（`*.vercel.app`），该域名在国内网络下经常超时或被重置，登录请求 `/api/login` 需要直连 Vercel，所以必须开 VPN。
+- 旧版页面引用了 `cdn.jsdelivr.net`（Remix 图标、Chart.js）和 `cdn.tailwindcss.com`，jsdelivr 在国内经常被 DNS 污染，导致样式和图标加载失败。
+
+### 解决方案：Cloudflare Pages 静态托管 + API 反向代理
+
+架构：国内用户访问 Cloudflare Pages（边缘节点在香港/新加坡等地，一般无需 VPN），前端仍使用相对路径 `/api/*` 请求，由 Pages Functions 把请求转发给 Vercel 后端，Vercel 再连接 MongoDB。
+
+免费额度：Cloudflare Pages 静态资源不限流量；Functions 每天 10 万次请求，足够小团队使用。
+
+### 部署步骤
+
+1. 注册 Cloudflare 账号（免费）：https://dash.cloudflare.com/sign-up
+2. 在 Cloudflare Pages 创建项目（Workers & Pages → Create application → Pages）。
+3. 连接本仓库，构建命令留空，输出目录填 `public`（或直接用 `npx wrangler pages deploy public` 上传）。
+4. 在项目 Settings → Environment variables 添加：
+   - `VERCEL_ORIGIN` = `https://你的项目名.vercel.app`
+5. 部署完成后访问 `https://你的项目名.pages.dev`，无需 VPN 即可登录使用。
+
+本地执行上传命令：
+
+```bash
+npm run deploy:cf
+```
+
+首次运行会提示 `npx wrangler login` 登录 Cloudflare 账号。
+
+### 注意事项
+
+- Vercel 上的原部署和 MongoDB 保持不变，两套域名（Vercel 直连、Cloudflare 代理）可同时使用。
+- 如果 `pages.dev` 域名在个别地区也不稳定，最稳妥的免费做法是在 Cloudflare 上绑定一个自己的域名（域名本身需要购买，约几十元/年）。
+- 若想彻底摆脱 Vercel，可后续把后端迁移到 Cloudflare Workers + D1（仍免费），但需要重写数据层，工作量较大。
