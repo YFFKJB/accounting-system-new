@@ -367,28 +367,22 @@
 - 前端页面和后端 API 都部署在 Vercel（`*.vercel.app`），该域名在国内网络下经常超时或被重置，登录请求 `/api/login` 需要直连 Vercel，所以必须开 VPN。
 - 旧版页面引用了 `cdn.jsdelivr.net`（Remix 图标、Chart.js）和 `cdn.tailwindcss.com`，jsdelivr 在国内经常被 DNS 污染，导致样式和图标加载失败。
 
-### 解决方案：Cloudflare Pages 静态托管 + API 反向代理
+### 解决方案：Cloudflare Worker 静态托管 + API 反向代理
 
-架构：国内用户访问 Cloudflare Pages（边缘节点在香港/新加坡等地，一般无需 VPN），前端仍使用相对路径 `/api/*` 请求，由 Pages Functions 把请求转发给 Vercel 后端，Vercel 再连接 MongoDB。
+架构：国内用户访问 Cloudflare Worker（`xxx.workers.dev`，边缘节点在香港/新加坡等地，一般无需 VPN），静态页面由 Worker 提供，`/api/*` 请求由 Worker 转发给 Vercel 后端，Vercel 再连接 MongoDB。
 
-免费额度：Cloudflare Pages 静态资源不限流量；Functions 每天 10 万次请求，足够小团队使用。
+免费额度：Cloudflare Workers 每天 10 万次请求，足够小团队使用。
 
 ### 部署步骤
 
 1. 注册 Cloudflare 账号（免费）：https://dash.cloudflare.com/sign-up
-2. 在 Cloudflare Pages 创建项目（Workers & Pages → Create application → Pages）。
-3. 连接本仓库，构建命令留空，输出目录填 `public`（或直接用 `npx wrangler pages deploy public` 上传）。
-4. 在项目 Settings → Environment variables 添加：
-   - `VERCEL_ORIGIN` = `https://你的项目名.vercel.app`
-5. 部署完成后访问 `https://你的项目名.pages.dev`，无需 VPN 即可登录使用。
+2. 在 Cloudflare Workers & Pages 创建 Worker 并连接本仓库（或直接使用仓库里的 `wrangler.jsonc`）。
+3. 项目构建命令填 `npx wrangler deploy`（仓库根目录的 `wrangler.jsonc` 会自动配置静态目录 `public` 和 API 代理脚本 `src/index.js`）。
+4. 推送代码后 Cloudflare 自动构建部署，访问 `https://你的项目名.workers.dev`，无需 VPN 即可登录使用。
 
-本地执行上传命令：
+如需更换后端地址（Vercel 域名），可在 Worker 设置中添加环境变量：
 
-```bash
-npm run deploy:cf
-```
-
-首次运行会提示 `npx wrangler login` 登录 Cloudflare 账号。
+- `VERCEL_ORIGIN` = `https://你的项目名.vercel.app`
 
 ### 注意事项
 
