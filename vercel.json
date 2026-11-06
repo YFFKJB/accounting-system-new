@@ -26,6 +26,11 @@
       "methods": ["GET", "POST", "OPTIONS"]
     },
     {
+      "src": "/api/records/all",
+      "dest": "/api/records-all.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
       "src": "/api/records/(?<id>[^/]+)",
       "dest": "/api/records.js",
       "methods": ["DELETE"]
